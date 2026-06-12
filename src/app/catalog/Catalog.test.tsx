@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ThemeProvider } from '@/features/theming';
+import { renderWithProviders } from '@/test/renderWithProviders';
 import { stubFetchRoutes } from '@/test/stubFetch';
 import { Catalog } from './Catalog';
 
@@ -36,14 +36,6 @@ const products = {
   ],
 };
 
-function renderCatalog() {
-  return render(
-    <ThemeProvider>
-      <Catalog />
-    </ThemeProvider>,
-  );
-}
-
 describe('<Catalog />', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -51,18 +43,25 @@ describe('<Catalog />', () => {
 
   it('shows skeleton loaders first, then the products', async () => {
     stubFetchRoutes({ 'brand.json': brand, products });
-    const { container } = renderCatalog();
+    const { container } = renderWithProviders(<Catalog />);
 
-    // Skeletons on first paint (SPEC §3.1 / §7).
     expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
 
     expect(await screen.findByText('Ethiopia Yirgacheffe')).toBeInTheDocument();
     expect(container.querySelectorAll('.skeleton')).toHaveLength(0);
   });
 
+  it('links each product to its detail page', async () => {
+    stubFetchRoutes({ 'brand.json': brand, products });
+    renderWithProviders(<Catalog />);
+
+    const link = await screen.findByRole('link', { name: /ethiopia yirgacheffe/i });
+    expect(link).toHaveAttribute('href', '/product/ethiopia');
+  });
+
   it('filters the grid by category', async () => {
     stubFetchRoutes({ 'brand.json': brand, products });
-    renderCatalog();
+    renderWithProviders(<Catalog />);
 
     await screen.findByText('Ethiopia Yirgacheffe');
     expect(screen.getByText('Espresso Forte')).toBeInTheDocument();

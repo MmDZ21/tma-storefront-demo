@@ -1,8 +1,10 @@
 import { useBrand } from '@/features/theming';
+import { cartCount, useCartStore } from '@/entities/cart/cartStore';
 
-/** Sticky brand header — logo (image or emoji), shop name, and a testnet pill. */
+/** Sticky brand header — logo (image or emoji), shop name, and a cart indicator. */
 export function Header() {
   const brand = useBrand();
+  const count = useCartStore((state) => cartCount(state.lines));
 
   return (
     <header className="sticky top-0 z-10 border-b border-border bg-header/80 backdrop-blur-md">
@@ -26,9 +28,16 @@ export function Header() {
           </p>
           <p className="truncate text-xs text-muted-foreground">Telegram Mini App</p>
         </div>
-        <span className="rounded-pill border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-          TON · testnet
-        </span>
+        <div className="relative" aria-label={`Cart: ${count} item${count === 1 ? '' : 's'}`}>
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-muted text-lg" aria-hidden>
+            🛍️
+          </span>
+          {count > 0 && (
+            <span className="absolute -right-1 -top-1 grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground">
+              {count}
+            </span>
+          )}
+        </div>
       </div>
     </header>
   );

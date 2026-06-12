@@ -1,0 +1,113 @@
+import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useBrand } from '@/features/theming';
+import { haptics, useBackButton, useTelegram } from '@/features/telegram';
+import { useProducts } from '@/app/catalog/useProducts';
+import { useCartStore } from '@/entities/cart/cartStore';
+import { formatTokenAmount } from '@/shared/format';
+import { Price } from '@/shared/ui/Price';
+import { Stepper } from '@/shared/ui/Stepper';
+import { PrimaryButton } from '@/shared/ui/PrimaryButton';
+import { Skeleton } from '@/shared/ui/Skeleton';
+
+function BackChevron({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Back"
+      className="absolute left-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-background/70 text-xl text-foreground backdrop-blur-md"
+    >
+      ←
+    </button>
+  );
+}
+
+/** Product detail page (SPEC §3.2): image, description, stepper, MainButton. */
+export function Product() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const brand = useBrand();
+  const { nativeControls } = useTelegram();
+  const state = useProducts(brand.productsFile);
+  const add = useCartStore((s) => s.add);
+  const [qty, setQty] = useState(1);
+
+  const goBack = () => navigate(-1);
+  useBackButton(goBack, nativeControls);
+
+  if (state.status === 'loading') {
+    return (
+      <main className="mx-auto w-full max-w-md">
+        <Skeleton className="aspect-square w-full rounded-none" />
+        <div className="space-y-3 p-4">
+          <Skeleton className="h-6 w-2/3" />
+          <Skeleton className="h-4 w-1/3" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      </main>
+    );
+  }
+
+  const product =
+    state.status === 'ready' ? state.products.find((item) => item.id === id) : undefined;
+
+  if (!product) {
+    return (
+      <main className="mx-auto flex min-h-[60vh] w-full max-w-md flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="text-sm text-muted-foreground">This product isn’t available.</p>
+        <button
+          type="button"
+          onClick={goBack}
+          className="rounded-control bg-primary px-5 py-2.5 font-medium text-primary-foreground"
+        >
+          Back to catalog
+        </button>
+      </main>
+    );
+  }
+
+  const total = product.priceTon * qty;
+  const handleAdd = () => {
+    add(product, qty);
+    haptics.notification('success');
+    // Slice 4 routes this to the cart; for now, return to browsing.
+    navigate('/');
+  };
+
+  return (
+    <main className="mx-auto w-full max-w-md pb-28">
+      <div className="relative">
+        {!nativeControls && <BackChevron onClick={goBack} />}
+        <img
+          src={product.image}
+          alt={product.name}
+          className="aspect-square w-full bg-muted object-cover"
+        />
+      </div>
+
+      <div className="p-4">
+        {product.badge && (
+          <span className="inline-block rounded-pill bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-primary-foreground">
+            {product.badge}
+          </span>
+        )}
+        <h1 className="mt-2 font-display text-2xl font-semibold text-balance text-foreground">
+          {product.name}
+        </h1>
+        <Price priceTon={product.priceTon} className="mt-2 block text-lg" />
+        <p className="mt-3 leading-relaxed text-muted-foreground">{product.description}</p>
+
+        <div className="mt-6 flex items-center justify-between">
+          <span className="text-sm font-medium text-foreground">Quantity</span>
+          <Stepper value={qty} onChange={setQty} />
+        </div>
+      </div>
+
+      <PrimaryButton
+        text={`Add to cart · ${formatTokenAmount(total)} ${brand.currency.label}`}
+        onClick={handleAdd}
+      />
+    </main>
+  );
+}

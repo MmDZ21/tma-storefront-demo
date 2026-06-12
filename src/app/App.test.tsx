@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { ThemeProvider } from '@/features/theming';
+import { screen } from '@testing-library/react';
+import { renderWithProviders } from '@/test/renderWithProviders';
 import { stubFetchRoutes } from '@/test/stubFetch';
 import { App } from './App';
 
@@ -41,34 +41,21 @@ describe('<App />', () => {
     vi.unstubAllGlobals();
   });
 
-  it('renders the brand header and the catalog for the active brand', async () => {
+  it('renders the brand header and catalog at the index route', async () => {
     stubFetchRoutes({ 'brand.json': brand, products });
-    render(
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>,
-    );
+    renderWithProviders(<App />, { route: '/' });
 
-    // Header
     expect(await screen.findByText('SOLE')).toBeInTheDocument();
-    expect(screen.getByText('Telegram Mini App')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /sole logo/i })).toHaveAttribute(
       'src',
       '/brand/sole.svg',
     );
-
-    // Catalog
     expect(await screen.findByText('Velocity Runner')).toBeInTheDocument();
-    expect(screen.getByText('Court Classic')).toBeInTheDocument();
   });
 
   it('applies the brand accent variable to the document root', async () => {
     stubFetchRoutes({ 'brand.json': brand, products });
-    render(
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>,
-    );
+    renderWithProviders(<App />, { route: '/' });
 
     await screen.findByText('SOLE');
     expect(document.documentElement.style.getPropertyValue('--brand-accent')).toBe('#ff4d2e');

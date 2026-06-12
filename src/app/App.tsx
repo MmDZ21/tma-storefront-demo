@@ -1,12 +1,13 @@
-import { Header } from './Header';
+import { Route, Routes } from 'react-router-dom';
 import { Catalog } from './catalog/Catalog';
+import { Product } from './product/Product';
 
-/** App shell: the brand header above the active screen (the catalog, for now). */
+/** Route table. The Router itself is provided by main.tsx (HashRouter) / tests. */
 export function App() {
   return (
-    <>
-      <Header />
-      <Catalog />
-    </>
+    <Routes>
+      <Route path="/" element={<Catalog />} />
+      <Route path="/product/:id" element={<Product />} />
+    </Routes>
   );
 }

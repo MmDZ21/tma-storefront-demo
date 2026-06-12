@@ -197,3 +197,68 @@ Supporting assumptions:
 skins (coffee + sneakers) visually verified in a 390px mobile viewport with the
 dark Telegram theme — logo, accent, products, categories all re-skin from one
 JSON swap.
+
+---
+
+## Slice 3 — Product page (2026-06-13, overnight)
+
+### Router
+
+- **`react-router-dom` v7 with `HashRouter`** (the one new top-level dep allowed
+  tonight). Hash routing because the app is a pure SPA with no server: it's
+  refresh-safe on static hosting (Cloudflare Pages) with no SPA-fallback config,
+  and the URL is invisible inside Telegram anyway. Routes: `/` (Catalog),
+  `/product/:id` (Product). The `<Router>` lives in main.tsx so tests can supply
+  a `MemoryRouter`.
+
+### State
+
+- **Zustand cart store** (`entities/cart/cartStore.ts`). This is "anything else"
+  per the overnight dep rule, but it's pre-decided by SPEC §2 ("Zustand for
+  cart") and slice 3's Add-to-cart needs it — rationale logged as required. Lines
+  are keyed by product id; `cartCount` / `cartTotalTon` are pure selectors.
+
+### Telegram native UI (`features/telegram`)
+
+- New module for cross-cutting native controls: `useMainButton`, `useBackButton`,
+  `haptics`, and a `TelegramProvider` exposing `{ inTelegram, platform,
+  nativeControls }`. Every SDK call is guarded/try-caught so it degrades quietly.
+- **`inTelegram` vs `nativeControls`** — an important distinction surfaced by
+  visual QA. `inTelegram` means "Telegram launch data is present" (real client
+  *or* the dev mock) and gates the slice-7 fallback page. `nativeControls` means
+  "a real client is painting native chrome" — only then do we drive the native
+  MainButton/BackButton; otherwise we render in-app equivalents, because the dev
+  mock supplies data but can't paint Telegram's own UI. Computed as
+  `inTelegram && !import.meta.env.DEV` (the mock only runs in DEV, so DEV is a
+  reliable "is-mocked" proxy).
+- **`PrimaryButton`** renders nothing in a real client (the native MainButton is
+  the CTA, SPEC §3.6/§5) and a sticky in-app button everywhere else, so the funnel
+  is visible in dev/preview/tests and never dead-ends. The product page's back
+  affordance follows the same rule (native BackButton in-client; an in-app
+  chevron otherwise).
+
+### Product page
+
+- Loads products independently via the existing `useProducts(brand.productsFile)`
+  and finds by `:id` (no shared products provider — the file is tiny and
+  HTTP-cached, so a second fetch is cheaper than the refactor). Image, badge,
+  name, `Price`, description, `Stepper` (selection haptics), and the MainButton
+  CTA "Add to cart · {qty×price} {label}".
+- **Add to cart** adds to the store, fires a success haptic, and (for slice 3)
+  returns to the catalog. Slice 4 will route it to `/cart`. The header gained a
+  cart-count badge (display-only this slice; slice 4 makes it a link).
+
+### For human review
+
+- `nativeControls` uses `!import.meta.env.DEV` as the "not mocked" proxy. Side
+  effect: running `vite dev` *inside* a real Telegram client (via a tunnel) would
+  show in-app controls instead of native ones. Fine for the demo (prod build in
+  Telegram → native); flag if on-device dev testing needs native controls.
+- The native MainButton/BackButton wiring is typechecked but only exercisable in
+  a real Telegram client (not the dev mock or jsdom) — **queued for on-device QA**.
+
+### Verification (slice 3)
+
+`tsc -b` clean · `eslint .` clean · **54 tests pass** · `vite build` clean ·
+initial JS **94.6 KB gzip** (+~15 KB for router+zustand; budget 250) · product
+page visually verified (image, stepper, sticky CTA) in a mobile viewport.

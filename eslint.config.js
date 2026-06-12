@@ -35,5 +35,10 @@ export default tseslint.config(
     files: ['vite.config.ts', '**/*.config.{ts,js}', 'scripts/**/*.{js,mjs}', 'bot/**/*.ts'],
     languageOptions: { globals: { ...globals.node } },
   },
+  {
+    // Test files and test utilities aren't part of the Fast Refresh graph.
+    files: ['**/*.{test,spec}.{ts,tsx}', 'src/test/**/*.{ts,tsx}'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
   prettier,
 );
