@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { parseBrand } from './brand';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import { parseBrand, loadBrand } from './brand';
 
 const validBrand = {
   name: 'Roast & Ritual',
@@ -58,5 +58,25 @@ describe('parseBrand', () => {
 
   it('rejects a negative usd rate', () => {
     expect(() => parseBrand({ ...validBrand, currency: { usdRate: -1 } })).toThrow();
+  });
+});
+
+describe('loadBrand', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('fetches and validates brand.json', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify(validBrand), { status: 200 })),
+    );
+    const brand = await loadBrand();
+    expect(brand.name).toBe('Roast & Ritual');
+  });
+
+  it('throws on a non-OK response', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('error', { status: 500 })));
+    await expect(loadBrand()).rejects.toThrow();
   });
 });
