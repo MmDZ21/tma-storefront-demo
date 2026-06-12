@@ -1,0 +1,149 @@
+@import 'tailwindcss';
+
+/*
+ * Theming model (SPEC §2, §3.7)
+ * ----------------------------------------------------------------------------
+ * The Telegram SDK injects raw `--tg-theme-*` custom properties at runtime
+ * (themeParams.bindCssVars()). We never read those directly in components.
+ * Instead we define a small semantic token layer below — every raw token gets
+ * an app-level name with an *outside-Telegram fallback*, so the UI is fully
+ * styled even in a plain browser (the §3.9 fallback path) before any SDK
+ * value lands. Brand accent is layered on top: `theming` sets `--brand-accent`
+ * (+ a computed readable `--brand-accent-foreground`) from brand.json, which
+ * wins over Telegram's button color. Zero hardcoded hex lives in components.
+ */
+
+/* Drive the `dark:` variant from a class we toggle off Telegram's isDark
+   signal, not the OS preference (Telegram's scheme can differ from the OS). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Surfaces */
+  --background: var(--tg-theme-bg-color, #fafaf8);
+  --card: var(--tg-theme-secondary-bg-color, #ffffff);
+  --muted: var(--tg-theme-secondary-bg-color, #f3f1ee);
+  --header: var(--tg-theme-header-bg-color, var(--background));
+  --border: var(--tg-theme-section-separator-color, #e9e5df);
+
+  /* Foreground */
+  --foreground: var(--tg-theme-text-color, #1c1917);
+  --card-foreground: var(--tg-theme-text-color, #1c1917);
+  --subtitle: var(--tg-theme-subtitle-text-color, #57534e);
+  --muted-foreground: var(--tg-theme-hint-color, #8a817c);
+  --link: var(--tg-theme-link-color, #2563eb);
+  --destructive: var(--tg-theme-destructive-text-color, #dc2626);
+
+  /* Accent — brand first, then Telegram's button color, then a TON-blue
+     default. `--brand-accent*` are set by the theming feature at runtime. */
+  --primary: var(--brand-accent, var(--tg-theme-button-color, #0098ea));
+  --primary-foreground: var(
+    --brand-accent-foreground,
+    var(--tg-theme-button-text-color, #ffffff)
+  );
+}
+
+/* Expose the semantic tokens to Tailwind utilities (bg-background, text-foreground,
+   border-border, bg-primary, …). `inline` makes utilities reference the live vars
+   above instead of copying a static value — runtime theme changes propagate. */
+@theme inline {
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-header: var(--header);
+  --color-border: var(--border);
+
+  --color-foreground: var(--foreground);
+  --color-card-foreground: var(--card-foreground);
+  --color-subtitle: var(--subtitle);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-link: var(--link);
+  --color-destructive: var(--destructive);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+}
+
+/* Brand-agnostic design tokens (type, radii, elevation, motion). These shape
+   the app's character within the constraint of Telegram-driven colors. */
+@theme {
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue',
+    Helvetica, Arial, sans-serif;
+  /* A brand may inject a display face via --brand-font-display; default = sans
+     to keep the native feel and a zero web-font payload (SPEC §7 perf budget). */
+  --font-display: var(--brand-font-display, var(--font-sans));
+
+  --radius-control: 0.75rem;
+  --radius-card: 1.25rem;
+  --radius-pill: 9999px;
+
+  --shadow-card: 0 1px 2px rgba(15, 18, 20, 0.05), 0 10px 30px -16px rgba(15, 18, 20, 0.22);
+  --shadow-pop: 0 16px 48px -16px rgba(15, 18, 20, 0.32);
+
+  /* Motion: an emphasized decelerate for entrances, a gentle spring for
+     interactive feedback (haptic-paired button presses, steppers). */
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Named animations → `animate-rise` utility for staggered entrances. */
+  --animate-rise: rise 520ms var(--ease-emphasized) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  /* Fill Telegram's stable viewport (excludes the keyboard) when present,
+     fall back to the dynamic viewport unit in a normal browser. */
+  #root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    min-height: var(--tg-viewport-stable-height, 100dvh);
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Respect users who ask for less motion (SPEC §7 / a11y). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
