@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { Product } from '@/config/products';
 import type { CartLine } from '@/entities/cart/cartStore';
-import { useOrderStore } from './orderStore';
+import { useOrderStore, nextStatus } from './orderStore';
 
 function line(id: string, priceTon: number, qty: number): CartLine {
   const product: Product = {
@@ -46,5 +46,13 @@ describe('orderStore', () => {
     const order = useOrderStore.getState().placeOrder([line('a', 1.5, 1)], 'ton', '0xabc');
     expect(order.paymentMethod).toBe('ton');
     expect(order.txHash).toBe('0xabc');
+  });
+});
+
+describe('nextStatus', () => {
+  it('progresses placed → paid → delivered → null', () => {
+    expect(nextStatus('placed')).toBe('paid');
+    expect(nextStatus('paid')).toBe('delivered');
+    expect(nextStatus('delivered')).toBeNull();
   });
 });

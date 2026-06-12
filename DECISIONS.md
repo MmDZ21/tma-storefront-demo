@@ -320,3 +320,33 @@ visually verified: catalog → product → add → cart (rows/stepper/remove/sub
   default 1s `findBy` timeout under heavy parallel jsdom load (intermittent, file
   order-dependent). Raised Testing Library's `asyncUtilTimeout` to 3000 ms in the
   test setup; full suite then green 3×/3 consecutive runs.
+
+---
+
+## Slice 6 — Order status timeline (2026-06-13, overnight)
+
+### Timeline
+
+- `/status/:id` now renders an animated **placed → paid → delivered** timeline
+  (SPEC §3.5): node dots transition color/scale as steps complete, a vertical
+  connector fills via a `height` transition, and the active node pulses. The
+  active step carries `aria-current="step"`.
+- **Auto-advance:** a `setTimeout` (1800 ms/step) driven by the pure `nextStatus`
+  helper walks the order forward for the demo. Because it's keyed on the current
+  status, each advance re-arms the next — and the CSS transitions animate on each
+  change. When **ton-pay lands, the `paid` step will be triggered by the real TON
+  transfer** instead of the timer (the order already carries `paymentMethod` /
+  `txHash` for this).
+- `ORDER_STATUS_SEQUENCE` + `nextStatus` live in the order store (pure, TDD'd);
+  the `Order` type itself is unchanged from slice 4.
+
+### Note
+
+- The "Paid → Payment confirmed on TON testnet" copy is illustrative while
+  checkout is simulated; ton-pay makes it literal. Acceptable for the demo.
+
+### Verification (slice 6)
+
+`tsc -b` clean · `eslint .` clean · **65 tests pass** (incl. a fake-timer
+auto-advance test) · `vite build` clean · initial JS **96.3 KB gzip** (budget
+250) · timeline visually verified: full funnel → animated placed→paid→delivered.

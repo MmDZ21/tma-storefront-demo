@@ -80,6 +80,24 @@ JS **95.7 KB gzip** (budget 250). Full funnel visually verified
 **Queued for human review**
 - Confirm the `Order` shape carries everything ton-pay needs before slice 5.
 
+**Commit:** `34f32d1`
+
+### ✅ Slice 6 — Order status timeline
+
+**Built**
+- `/status/:id` animated **placed → paid → delivered** timeline: dots transition
+  on completion, the connector fills, the active node pulses (`aria-current`).
+- Auto-advance via `setTimeout` (1.8 s/step) driven by a TDD'd pure `nextStatus`
+  helper. ton-pay will later trigger the `paid` step from the real transfer.
+
+**Verification:** `tsc -b` ✅ · `eslint` ✅ · **65 tests** ✅ (incl. fake-timer
+auto-advance) · `vite build` ✅ · JS **96.3 KB gzip** (budget 250). Timeline
+visually verified through the full funnel.
+
+**Key decisions** (DECISIONS.md → Slice 6)
+- Timeline auto-advances for the demo; the order's `paymentMethod`/`txHash` seams
+  let ton-pay drive the `paid` step for real later.
+
 **Commit:** _(below)_
 
 <!-- appended per slice -->

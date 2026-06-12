@@ -4,6 +4,15 @@ import type { CartLine } from '@/entities/cart/cartStore';
 export type OrderStatus = 'placed' | 'paid' | 'delivered';
 export type PaymentMethod = 'ton' | 'simulated';
 
+/** The order lifecycle, in order — drives the status timeline (SPEC §3.5). */
+export const ORDER_STATUS_SEQUENCE: readonly OrderStatus[] = ['placed', 'paid', 'delivered'];
+
+/** The next status after `status`, or null if it's the final one. */
+export function nextStatus(status: OrderStatus): OrderStatus | null {
+  const index = ORDER_STATUS_SEQUENCE.indexOf(status);
+  return ORDER_STATUS_SEQUENCE[index + 1] ?? null;
+}
+
 export interface OrderItem {
   id: string;
   name: string;
