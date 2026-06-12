@@ -13,7 +13,22 @@ full `vitest` suite, `vite build` — all green, JS budget (< 250 KB gzip) respe
 
 ## TL;DR
 
-_(filled in at the end)_
+All four in-scope slices — **3 (product), 4 (cart & checkout), 6 (order status),
+7 (outside-Telegram fallback)** — are implemented, verified, and committed. The
+hard-stopped slices **5 (ton-pay)** and **8 (bot)** were not started.
+
+The app now runs the **full funnel**: catalog → product (stepper + Add to cart) →
+cart → checkout (simulated order) → **animated placed→paid→delivered** status, plus
+the **outside-Telegram fallback** (QR + deep link). Every slice passed its gate
+(`tsc -b` · `eslint` · full `vitest` · `vite build`). **73 tests**, all green and
+stable; initial JS **96.9 KB gzip** (budget 250) with the QR/fallback split into a
+6.9 KB lazy chunk.
+
+Bonus done: deeper test coverage + a DRAFT README. New deps (each logged in
+DECISIONS): `react-router-dom`, `zustand` (SPEC §2), `qrcode.react` (lazy).
+
+**Read next:** the _Queued for human review_ list and the _Hard stops_ section
+near the bottom. Working tree is clean; nothing pushed.
 
 ---
 
@@ -121,6 +136,46 @@ Fallback visually verified (branded page, real QR, deep link).
 - `src/config/app.ts` → `APP.botUrl` is a **placeholder**; set the real bot deep
   link in slice 8.
 
-**Commit:** _(below)_
+**Commit:** `c31b8bc`
 
-<!-- appended per slice -->
+### ➕ Bonus (all four slices landed) — deeper tests + README draft
+
+- **Test coverage** deepened on existing code: `Price` (USD-hint on/off),
+  `loadBrand` (200 validate / non-OK throws), `Header` (name, cart link, badge).
+  → **73 tests** total, stable across repeated runs. Commit `50d1c8b`.
+- **README.md** expanded into a fuller draft (architecture sketch, updated status,
+  layout) and clearly marked **DRAFT** — hero GIF / screenshots / live links / demo
+  video still belong to the polish slice.
+
+---
+
+## Hard stops (not started, as instructed)
+
+- **Slice 5 — TON pay:** gated on security review + external resources. The cart
+  checkout currently places a *simulated* order; the `Order` model already carries
+  `paymentMethod` / `txHash` seams, and the status timeline's `paid` step is ready
+  to be driven by a real transfer. No ton-pay code was written.
+- **Slice 8 — Bot:** gated on external resources. `src/config/app.ts` →
+  `APP.botUrl` is a placeholder for the bot deep link.
+
+## Queued for human review
+
+1. **Native MainButton/BackButton** wiring is typechecked but only exercisable in
+   a real Telegram client (not the dev mock / jsdom) — needs on-device QA.
+2. **`nativeControls = inTelegram && !DEV`**: running `vite dev` inside a real
+   client (tunnel) shows in-app controls, not native. Fine for the demo; revisit
+   if on-device dev needs native.
+3. **`APP.botUrl`** is a placeholder — set the real bot deep link in slice 8.
+4. **Checkout is simulated** until ton-pay (slice 5). Confirm the `Order` shape
+   carries everything ton-pay + the timeline need before that slice.
+5. **Product imagery** is authored SVG (not photos) — swap to real photos by
+   replacing the files the `image` paths point at, if desired.
+
+## End state
+
+- Branch `master`; **clean working tree**; nothing pushed (no remote ops, per
+  instructions).
+- Commits this run: slice 3 `e09068f` · slice 4 `34f32d1` · slice 6 `34b191d` ·
+  slice 7 `c31b8bc` · tests `50d1c8b` · (+ this report/README).
+- Every slice passed its gate: `tsc -b`, `eslint`, full `vitest`, `vite build`.
+- Initial JS **96.9 KB gzip** (budget 250) + a 6.9 KB lazy fallback chunk.
