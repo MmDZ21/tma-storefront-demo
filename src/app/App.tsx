@@ -31,16 +31,16 @@ export function App() {
     <>
       <header className="sticky top-0 z-10 border-b border-border bg-header/80 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-md items-center gap-3 px-4 py-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-control bg-primary/12">
-            {brand.logo.emoji ? (
-              <span className="text-xl" aria-hidden>
-                {brand.logo.emoji}
-              </span>
-            ) : brand.logo.url ? (
-              <img src={brand.logo.url} alt="" className="h-6 w-6 object-contain" />
+          <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-control bg-primary/12">
+            {brand.logoUrl ? (
+              <img
+                src={brand.logoUrl}
+                alt={`${brand.name} logo`}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <span className="text-xl" aria-hidden>
-                🛍️
+                {brand.logoEmoji ?? '🛍️'}
               </span>
             )}
           </span>

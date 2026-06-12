@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { miniApp, useSignal } from '@telegram-apps/sdk-react';
+import { themeParams, useSignal } from '@telegram-apps/sdk-react';
 import { DEFAULT_BRAND, loadBrand, type Brand } from '@/config/brand';
 import { applyBrandTheme } from './brandTheme';
 import { markTelegramReady } from './initTelegram';
@@ -13,7 +13,9 @@ import { BrandContext } from './BrandContext';
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [brand, setBrand] = useState<Brand>(DEFAULT_BRAND);
-  const isDark = useSignal(miniApp.isDark) === true;
+  // themeParams.isDark tracks Telegram's live theme (updated on `theme_changed`),
+  // and stays consistent with the colors themeParams.bindCssVars() applies.
+  const isDark = useSignal(themeParams.isDark) === true;
 
   // Load the active brand once; fall back to a neutral default on any failure.
   useEffect(() => {

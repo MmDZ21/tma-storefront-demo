@@ -5,7 +5,7 @@ import { buildBrandThemeVars, applyBrandTheme } from './brandTheme';
 const coffee: Brand = {
   name: 'Roast & Ritual',
   welcomeLine: 'Small-batch coffee, delivered on-chain.',
-  logo: { emoji: '☕' },
+  logoEmoji: '☕',
   accentColor: '#9a5b34',
   currency: { label: 'TON', usdRate: 5.2 },
   productsFile: '/config/products.coffee.json',

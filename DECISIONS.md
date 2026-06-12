@@ -98,3 +98,41 @@ the judgment calls the spec left open.
 
 `tsc -b` clean · `eslint .` clean · **22 tests pass** · `vite build` clean,
 initial JS **78.7 KB gzip** / CSS **3.8 KB gzip** (SPEC §7 budget: < 250 KB gzip).
+
+---
+
+## Review fixes — applied before slice 2 (2026-06-13)
+
+Addressing the slice-1 review:
+
+1. **Live theme switching is reactive + tested.** The dark class now derives from
+   `themeParams.isDark` (was `miniApp.isDark`) — the signal Telegram updates on
+   its `theme_changed` event, and the one consistent with the colors
+   `bindCssVars()` applies. `themeReactivity.test.tsx` mounts the provider with a
+   dark palette, emits `theme_changed` with a light palette, and asserts the
+   `.dark` class + `color-scheme` flip mid-session.
+2. **Logo schema supports real images.** Brand config flattened to `logoUrl`
+   (image, primary) + `logoEmoji` (fallback). One example skin uses an image
+   (`brand.sneakers.json` → a hand-authored, locally bundled `/public/brand/sole.svg`),
+   the other an emoji (`brand.coffee.json` → ☕), proving both render paths
+   (covered by tests). Logo images are bundled locally — never hotlinked.
+3. **Dev mock fully excluded from production.** `mockEnv` is loaded via a dynamic
+   `import()` inside the `import.meta.env.DEV` guard in main.tsx, so it is
+   dead-code-eliminated — verified by grepping `dist/` (no mock module, palette,
+   or function name present).
+4. **Browser floor documented (Tailwind v4 tradeoff).** Safari 16.4+ /
+   Chrome·Edge 111+ / Firefox 128+, due to v4's use of cascade layers,
+   `@property`, and `color-mix()`. Accepted because the Telegram in-app WebView
+   comfortably exceeds it. Stated in the README and here.
+5. **CI added.** `.github/workflows/ci.yml` runs typecheck → lint → test → build
+   on every push/PR (Node 22), with a status badge in the README.
+
+Supporting assumptions:
+
+- **CI badge / repo slug** assumes `github.com/MmDZ21/tma-storefront-demo` (no git
+  remote is configured yet). Update the badge URL if the slug differs.
+- **LICENSE** copyright holder is `MmDZ21` (from the git user); adjust to a legal
+  name if preferred.
+- **npm registry pinned to the official registry** via a committed `.npmrc`, and
+  `package-lock.json` was regenerated so it carries no mirror-specific URLs —
+  clean, reproducible installs on CI and for anyone who forks the repo.

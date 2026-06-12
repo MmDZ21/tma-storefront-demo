@@ -1,7 +1,8 @@
 {
   "name": "SOLE",
   "welcomeLine": "Fresh drops. Flex in TON.",
-  "logo": { "emoji": "👟" },
+  "logoUrl": "/brand/sole.svg",
+  "logoEmoji": "👟",
   "accentColor": "#ff4d2e",
   "currency": { "label": "TON", "usdRate": 5.2 },
   "productsFile": "/config/products.sneakers.json"

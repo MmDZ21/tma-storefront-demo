@@ -4,7 +4,7 @@ import { parseBrand } from './brand';
 const validBrand = {
   name: 'Roast & Ritual',
   welcomeLine: 'Small-batch coffee, delivered on-chain.',
-  logo: { emoji: '☕' },
+  logoEmoji: '☕',
   accentColor: '#9a5b34',
   currency: { label: 'TON', usdRate: 5.2 },
   productsFile: '/config/products.coffee.json',
@@ -25,13 +25,21 @@ describe('parseBrand', () => {
     expect(brand.currency.usdRate).toBeUndefined();
   });
 
-  it('accepts a logo with only a url', () => {
-    const brand = parseBrand({ ...validBrand, logo: { url: '/brand/logo.svg' } });
-    expect(brand.logo.url).toBe('/brand/logo.svg');
+  it('accepts an image logo via logoUrl (no emoji needed)', () => {
+    const brand = parseBrand({ ...validBrand, logoEmoji: undefined, logoUrl: '/brand/sole.svg' });
+    expect(brand.logoUrl).toBe('/brand/sole.svg');
+    expect(brand.logoEmoji).toBeUndefined();
   });
 
-  it('rejects a logo with neither emoji nor url', () => {
-    expect(() => parseBrand({ ...validBrand, logo: {} })).toThrow();
+  it('accepts an image logo with an emoji fallback', () => {
+    const brand = parseBrand({ ...validBrand, logoUrl: '/brand/sole.svg' });
+    expect(brand.logoUrl).toBe('/brand/sole.svg');
+    expect(brand.logoEmoji).toBe('☕');
+  });
+
+  it('rejects a brand with neither logoUrl nor logoEmoji', () => {
+    const { logoEmoji: _logoEmoji, ...rest } = validBrand;
+    expect(() => parseBrand(rest)).toThrow();
   });
 
   it('rejects a missing name', () => {

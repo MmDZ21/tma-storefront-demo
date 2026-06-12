@@ -11,30 +11,33 @@ const hexColor = z
   .string()
   .regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'must be a hex color, e.g. "#9a5b34"');
 
-export const BrandSchema = z.object({
-  /** Shop name, shown in the header and used as the document title. */
-  name: z.string().min(1),
-  /** One-line greeting on the storefront. */
-  welcomeLine: z.string().min(1),
-  /** Logo as an emoji (zero-asset re-skins) or an image url/path. */
-  logo: z
-    .object({
-      emoji: z.string().min(1).optional(),
-      url: z.string().min(1).optional(),
-    })
-    .refine((logo) => Boolean(logo.emoji ?? logo.url), {
-      message: 'logo must define an "emoji" or a "url"',
+export const BrandSchema = z
+  .object({
+    /** Shop name, shown in the header and used as the document title. */
+    name: z.string().min(1),
+    /** One-line greeting on the storefront. */
+    welcomeLine: z.string().min(1),
+    /**
+     * Logo image (url or absolute path). Real re-skins point this at the lead's
+     * actual logo; images are bundled locally, never hotlinked.
+     */
+    logoUrl: z.string().min(1).optional(),
+    /** Emoji logo — the zero-asset fallback used when no logoUrl is set. */
+    logoEmoji: z.string().min(1).optional(),
+    /** Accent color; drives the primary button and highlights. */
+    accentColor: hexColor,
+    /** Currency display + optional static TON→USD rate for the price hint. */
+    currency: z.object({
+      label: z.string().min(1).default('TON'),
+      usdRate: z.number().positive().optional(),
     }),
-  /** Accent color; drives the primary button and highlights. */
-  accentColor: hexColor,
-  /** Currency display + optional static TON→USD rate for the price hint. */
-  currency: z.object({
-    label: z.string().min(1).default('TON'),
-    usdRate: z.number().positive().optional(),
-  }),
-  /** Absolute path to this brand's products file (loaded by the catalog). */
-  productsFile: z.string().regex(/^\//, 'must be an absolute path starting with "/"'),
-});
+    /** Absolute path to this brand's products file (loaded by the catalog). */
+    productsFile: z.string().regex(/^\//, 'must be an absolute path starting with "/"'),
+  })
+  .refine((brand) => Boolean(brand.logoUrl ?? brand.logoEmoji), {
+    message: 'brand needs a "logoUrl" (image) or a "logoEmoji" fallback',
+    path: ['logoEmoji'],
+  });
 
 export type Brand = z.infer<typeof BrandSchema>;
 
@@ -50,7 +53,7 @@ export function parseBrand(raw: unknown): Brand {
 export const DEFAULT_BRAND: Brand = {
   name: 'TON Storefront',
   welcomeLine: 'A Telegram Mini App storefront demo.',
-  logo: { emoji: '🛍️' },
+  logoEmoji: '🛍️',
   accentColor: '#0098ea',
   currency: { label: 'TON' },
   productsFile: '/config/products.coffee.json',
