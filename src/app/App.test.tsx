@@ -1,84 +1,76 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ThemeProvider } from '@/features/theming';
+import { stubFetchRoutes } from '@/test/stubFetch';
 import { App } from './App';
 
-const coffeeBrand = {
-  name: 'Roast & Ritual',
-  welcomeLine: 'Small-batch coffee, delivered on-chain.',
-  logoEmoji: '☕',
-  accentColor: '#9a5b34',
-  currency: { label: 'TON', usdRate: 5.2 },
-  productsFile: '/config/products.coffee.json',
-};
-
-const soleBrand = {
+const brand = {
   name: 'SOLE',
   welcomeLine: 'Fresh drops. Flex in TON.',
   logoUrl: '/brand/sole.svg',
   logoEmoji: '👟',
   accentColor: '#ff4d2e',
-  currency: { label: 'TON' },
+  currency: { label: 'TON', usdRate: 5.2 },
   productsFile: '/config/products.sneakers.json',
 };
 
-function stubBrandFetch(brand: object): void {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(
-      async () =>
-        new Response(JSON.stringify(brand), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }),
-    ),
-  );
-}
+const products = {
+  products: [
+    {
+      id: 'velocity-runner',
+      name: 'Velocity Runner',
+      description: 'A featherweight daily trainer.',
+      priceTon: 3.2,
+      image: '/img/products/sneaker-velocity-runner.svg',
+      category: 'Runners',
+      badge: 'Best seller',
+    },
+    {
+      id: 'court-classic',
+      name: 'Court Classic',
+      description: 'Timeless court lines.',
+      priceTon: 2.5,
+      image: '/img/products/sneaker-court-classic.svg',
+      category: 'Lifestyle',
+    },
+  ],
+};
 
 describe('<App />', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it('mounts inside the ThemeProvider and renders the storefront shell', async () => {
-    stubBrandFetch(coffeeBrand);
+  it('renders the brand header and the catalog for the active brand', async () => {
+    stubFetchRoutes({ 'brand.json': brand, products });
     render(
       <ThemeProvider>
         <App />
       </ThemeProvider>,
     );
 
-    // Static chrome renders immediately (proves mount + context wiring).
-    expect(screen.getByRole('button', { name: /browse the catalog/i })).toBeInTheDocument();
+    // Header
+    expect(await screen.findByText('SOLE')).toBeInTheDocument();
     expect(screen.getByText('Telegram Mini App')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /sole logo/i })).toHaveAttribute(
+      'src',
+      '/brand/sole.svg',
+    );
 
-    // The fetched brand flows through context into the header.
-    expect(await screen.findByText('Roast & Ritual')).toBeInTheDocument();
-    // Emoji logo path: no <img> is rendered.
-    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    // Catalog
+    expect(await screen.findByText('Velocity Runner')).toBeInTheDocument();
+    expect(screen.getByText('Court Classic')).toBeInTheDocument();
   });
 
   it('applies the brand accent variable to the document root', async () => {
-    stubBrandFetch(coffeeBrand);
+    stubFetchRoutes({ 'brand.json': brand, products });
     render(
       <ThemeProvider>
         <App />
       </ThemeProvider>,
     );
 
-    await screen.findByText('Roast & Ritual');
-    expect(document.documentElement.style.getPropertyValue('--brand-accent')).toBe('#9a5b34');
-  });
-
-  it('renders an image logo when the brand sets logoUrl', async () => {
-    stubBrandFetch(soleBrand);
-    render(
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>,
-    );
-
-    const logo = await screen.findByRole('img', { name: /sole logo/i });
-    expect(logo).toHaveAttribute('src', '/brand/sole.svg');
+    await screen.findByText('SOLE');
+    expect(document.documentElement.style.getPropertyValue('--brand-accent')).toBe('#ff4d2e');
   });
 });

@@ -136,3 +136,64 @@ Supporting assumptions:
 - **npm registry pinned to the official registry** via a committed `.npmrc`, and
   `package-lock.json` was regenerated so it carries no mirror-specific URLs —
   clean, reproducible installs on CI and for anyone who forks the repo.
+
+---
+
+## Slice 2 — Catalog (2026-06-13)
+
+### Products config
+
+- `products.json` is zod-validated exactly like brand.json (`config/products.ts`):
+  a `ProductSchema` (id, name, description, priceTon, image, category, badge?)
+  wrapped in `{ products: [...] }`. The `image` field is regex-validated to a
+  **local absolute path**, which structurally rejects hotlinked/remote URLs (per
+  the directive: no external image dependencies).
+- `brand.productsFile` points at the active brand's products file, so a re-skin
+  swaps the catalog along with the branding. Coffee + sneaker sets ship with
+  **8 products each** (SPEC §3.1).
+
+### Product imagery
+
+- Product images are **authored locally as flat-SVG illustrations**, emitted by
+  `scripts/generate-product-images.mjs` (`npm run gen:images`; outputs are
+  committed). Rationale: the demo must ship license-free imagery with zero
+  external dependencies — authored SVGs guarantee that, stay tiny (16 images ≈
+  68 KB total), scale crisply, and re-skin trivially. Swap in real photos later
+  by replacing the files the `image` paths point at. Coffee uses a coffee-bag
+  motif, sneakers a flat low-top, each recolored per product from a palette table.
+
+### Catalog UI
+
+- `Catalog` loads the active brand's products, shows **skeleton loaders** on first
+  paint (SPEC §3.1/§7 — never spinners), then a 2-column grid with **category
+  chips** (derived from the products, with "All" prepended) for client-side
+  filtering.
+- New shared primitives: `Skeleton` (shimmer via a `.skeleton` component class +
+  a `color-mix` highlight) and `Price` (TON amount + approximate USD hint from
+  `brand.currency.usdRate`). `formatTokenAmount` / `formatUsd` are TDD'd pure
+  helpers. App now composes `Header` + `Catalog` (the slice-1 home shell is gone).
+
+### Init resilience (found during visual QA)
+
+- Visual QA caught a **blank-screen-on-reload** bug. In dev, `mockTelegramEnv`
+  installs a *per-load* postMessage interception, but `mockTelegramEnvForDev` was
+  short-circuiting on `isTMA()` (which stays true across reloads via persisted
+  launch params), so `init()` threw `UnknownEnvError` and React never mounted.
+  Fix: the dev mock now always re-applies, **and** `initTelegram` wraps its SDK
+  calls in try/catch so any hard SDK failure falls back to token theming instead
+  of blanking the app. Added a static `favicon.svg` (removes the dev 404; a
+  brand-aware favicon is a candidate polish item).
+
+### Budget
+
+- Initial JS **79.5 KB gzip** / CSS **4.4 KB gzip** — the catalog added ~0.8 KB JS
+  (images are separate static assets). Comfortably under the 250 KB gzip budget,
+  so **no per-route code-splitting yet**; revisit when the product/cart/status
+  routes and a router land.
+
+### Verification (slice 2)
+
+`tsc -b` clean · `eslint .` clean · **39 tests pass** · `vite build` clean · both
+skins (coffee + sneakers) visually verified in a 390px mobile viewport with the
+dark Telegram theme — logo, accent, products, categories all re-skin from one
+JSON swap.

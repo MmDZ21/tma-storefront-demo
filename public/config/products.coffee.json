@@ -1,0 +1,71 @@
+{
+  "products": [
+    {
+      "id": "ethiopia-yirgacheffe",
+      "name": "Ethiopia Yirgacheffe",
+      "description": "Bright and floral, with notes of citrus, bergamot, and jasmine. A delicate pour-over favorite.",
+      "priceTon": 1.5,
+      "image": "/img/products/coffee-ethiopia-yirgacheffe.svg",
+      "category": "Filter",
+      "badge": "Best seller"
+    },
+    {
+      "id": "colombia-huila",
+      "name": "Colombia Huila",
+      "description": "Balanced and sweet, with caramel, red apple, and a smooth cocoa finish.",
+      "priceTon": 1.3,
+      "image": "/img/products/coffee-colombia-huila.svg",
+      "category": "Filter"
+    },
+    {
+      "id": "kenya-aa",
+      "name": "Kenya AA",
+      "description": "Juicy and vibrant, with blackcurrant, grapefruit, and a winey acidity.",
+      "priceTon": 1.6,
+      "image": "/img/products/coffee-kenya-aa.svg",
+      "category": "Filter"
+    },
+    {
+      "id": "espresso-forte",
+      "name": "Espresso Forte",
+      "description": "Our signature espresso blend — dark chocolate, toasted hazelnut, and a syrupy body.",
+      "priceTon": 1.4,
+      "image": "/img/products/coffee-espresso-forte.svg",
+      "category": "Espresso",
+      "badge": "House blend"
+    },
+    {
+      "id": "brazil-santos",
+      "name": "Brazil Santos",
+      "description": "Low-acid and nutty, with milk chocolate and roasted almond. Great with milk.",
+      "priceTon": 1.2,
+      "image": "/img/products/coffee-brazil-santos.svg",
+      "category": "Espresso"
+    },
+    {
+      "id": "sumatra-mandheling",
+      "name": "Sumatra Mandheling",
+      "description": "Earthy and full-bodied, with cedar, dark cocoa, and a lingering spice.",
+      "priceTon": 1.5,
+      "image": "/img/products/coffee-sumatra-mandheling.svg",
+      "category": "Espresso"
+    },
+    {
+      "id": "guatemala-antigua",
+      "name": "Guatemala Antigua",
+      "description": "Rich and complex, with brown sugar, orange zest, and a velvety mouthfeel.",
+      "priceTon": 1.45,
+      "image": "/img/products/coffee-guatemala-antigua.svg",
+      "category": "Filter",
+      "badge": "New"
+    },
+    {
+      "id": "decaf-swiss-water",
+      "name": "Decaf Swiss Water",
+      "description": "All the flavor, none of the caffeine. Chemical-free decaf with cocoa and dried fig.",
+      "priceTon": 1.3,
+      "image": "/img/products/coffee-decaf-swiss-water.svg",
+      "category": "Decaf"
+    }
+  ]
+}

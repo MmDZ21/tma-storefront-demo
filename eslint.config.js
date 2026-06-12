@@ -32,7 +32,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['vite.config.ts', '**/*.config.{ts,js}', 'bot/**/*.ts'],
+    files: ['vite.config.ts', '**/*.config.{ts,js}', 'scripts/**/*.{js,mjs}', 'bot/**/*.ts'],
     languageOptions: { globals: { ...globals.node } },
   },
   prettier,

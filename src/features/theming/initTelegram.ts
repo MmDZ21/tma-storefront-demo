@@ -49,35 +49,43 @@ export function initTelegram(): TelegramInitResult {
     return { inTelegram: false, platform: null };
   }
 
-  initSdk();
+  try {
+    initSdk();
 
-  // Theme params drive every color. Mount synchronously so the first paint is
-  // already themed (no flash), then publish the --tg-theme-* variables.
-  attempt(() => themeParams.mountSync());
-  attempt(() => {
-    if (themeParams.bindCssVars.isAvailable()) themeParams.bindCssVars();
-  });
+    // Theme params drive every color. Mount synchronously so the first paint is
+    // already themed (no flash), then publish the --tg-theme-* variables.
+    attempt(() => themeParams.mountSync());
+    attempt(() => {
+      if (themeParams.bindCssVars.isAvailable()) themeParams.bindCssVars();
+    });
 
-  // Mini app powers the isDark signal and header/background color control.
-  attempt(() => miniApp.mountSync());
+    // Mini app powers the isDark signal and header/background color control.
+    attempt(() => miniApp.mountSync());
 
-  // Viewport mounts asynchronously; once ready, publish --tg-viewport-* and
-  // expand to full height on load (SPEC §3.6).
-  attempt(() => {
-    void viewport
-      .mount()
-      .then(() => {
-        if (viewport.bindCssVars.isAvailable()) viewport.bindCssVars();
-        if (viewport.expand.isAvailable()) viewport.expand();
-      })
-      .catch((error: unknown) => {
-        if (import.meta.env.DEV) {
-          console.warn('[telegram] viewport mount failed:', error);
-        }
-      });
-  });
+    // Viewport mounts asynchronously; once ready, publish --tg-viewport-* and
+    // expand to full height on load (SPEC §3.6).
+    attempt(() => {
+      void viewport
+        .mount()
+        .then(() => {
+          if (viewport.bindCssVars.isAvailable()) viewport.bindCssVars();
+          if (viewport.expand.isAvailable()) viewport.expand();
+        })
+        .catch((error: unknown) => {
+          if (import.meta.env.DEV) {
+            console.warn('[telegram] viewport mount failed:', error);
+          }
+        });
+    });
 
-  return { inTelegram: true, platform: safePlatform() };
+    return { inTelegram: true, platform: safePlatform() };
+  } catch (error) {
+    // A hard SDK failure must never blank the app — fall back to token theming.
+    if (import.meta.env.DEV) {
+      console.warn('[telegram] init failed, using fallback theming:', error);
+    }
+    return { inTelegram: false, platform: null };
+  }
 }
 
 /**

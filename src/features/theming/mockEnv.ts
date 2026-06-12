@@ -1,4 +1,4 @@
-import { isTMA, mockTelegramEnv } from '@telegram-apps/sdk-react';
+import { mockTelegramEnv } from '@telegram-apps/sdk-react';
 
 /**
  * Dev-only Telegram environment mock.
@@ -8,12 +8,14 @@ import { isTMA, mockTelegramEnv } from '@telegram-apps/sdk-react';
  * imported behind `import.meta.env.DEV`, so it is tree-shaken out of production
  * builds — the live app must use the genuine Telegram environment.
  *
+ * It runs on every load (no `isTMA()` short-circuit): `mockTelegramEnv` persists
+ * launch params across reloads, but the postMessage interception it installs is
+ * per-load, so it must be re-applied each time or `init()` throws on reload.
+ *
  * Launch params are passed as a raw query string (the on-the-wire format), which
  * is the format Telegram itself delivers and keeps the mock fully typed.
  */
 export function mockTelegramEnvForDev(): void {
-  if (isTMA()) return;
-
   // A Telegram "Night" palette, so the dev preview shows the native dark theme.
   const themeParams = {
     accent_text_color: '#6ab2f2',

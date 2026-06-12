@@ -1,0 +1,71 @@
+{
+  "products": [
+    {
+      "id": "velocity-runner",
+      "name": "Velocity Runner",
+      "description": "A featherweight daily trainer with responsive foam and a breathable knit upper.",
+      "priceTon": 3.2,
+      "image": "/img/products/sneaker-velocity-runner.svg",
+      "category": "Runners",
+      "badge": "Best seller"
+    },
+    {
+      "id": "aero-knit",
+      "name": "Aero Knit",
+      "description": "Sock-like comfort meets street style. Seamless knit, plush heel, all-day ride.",
+      "priceTon": 2.8,
+      "image": "/img/products/sneaker-aero-knit.svg",
+      "category": "Runners"
+    },
+    {
+      "id": "apex-high",
+      "name": "Apex High",
+      "description": "A bold high-top with ankle support and a sculpted, chunky sole.",
+      "priceTon": 3.5,
+      "image": "/img/products/sneaker-apex-high.svg",
+      "category": "High-tops"
+    },
+    {
+      "id": "court-classic",
+      "name": "Court Classic",
+      "description": "Timeless court lines in premium leather. Clean, minimal, goes with everything.",
+      "priceTon": 2.5,
+      "image": "/img/products/sneaker-court-classic.svg",
+      "category": "Lifestyle"
+    },
+    {
+      "id": "street-glide",
+      "name": "Street Glide",
+      "description": "Retro running silhouette with suede overlays and a gum outsole.",
+      "priceTon": 2.9,
+      "image": "/img/products/sneaker-street-glide.svg",
+      "category": "Lifestyle"
+    },
+    {
+      "id": "trail-blazer",
+      "name": "Trail Blazer",
+      "description": "Rugged grip and a protective toe cap for the trail or the city.",
+      "priceTon": 3.1,
+      "image": "/img/products/sneaker-trail-blazer.svg",
+      "category": "Runners",
+      "badge": "New"
+    },
+    {
+      "id": "retro-dunk",
+      "name": "Retro Dunk",
+      "description": "An old-school hoops high-top with bold color blocking and a padded collar.",
+      "priceTon": 3.4,
+      "image": "/img/products/sneaker-retro-dunk.svg",
+      "category": "High-tops"
+    },
+    {
+      "id": "cloud-walker",
+      "name": "Cloud Walker",
+      "description": "Pillow-soft lifestyle slip-on for effortless everyday wear.",
+      "priceTon": 2.7,
+      "image": "/img/products/sneaker-cloud-walker.svg",
+      "category": "Lifestyle",
+      "badge": "Limited"
+    }
+  ]
+}

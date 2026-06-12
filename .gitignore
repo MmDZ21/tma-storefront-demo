@@ -39,3 +39,7 @@ Thumbs.db
 
 # TypeScript incremental build info
 *.tsbuildinfo
+
+# Local screenshot / browser-automation artifacts
+.playwright-mcp/
+
