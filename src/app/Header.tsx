@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useBrand } from '@/features/theming';
 import { cartCount, useCartStore } from '@/entities/cart/cartStore';
 
@@ -28,7 +29,11 @@ export function Header() {
           </p>
           <p className="truncate text-xs text-muted-foreground">Telegram Mini App</p>
         </div>
-        <div className="relative" aria-label={`Cart: ${count} item${count === 1 ? '' : 's'}`}>
+        <Link
+          to="/cart"
+          className="relative"
+          aria-label={`Cart: ${count} item${count === 1 ? '' : 's'}`}
+        >
           <span className="grid h-9 w-9 place-items-center rounded-full bg-muted text-lg" aria-hidden>
             🛍️
           </span>
@@ -37,7 +42,7 @@ export function Header() {
               {count}
             </span>
           )}
-        </div>
+        </Link>
       </div>
     </header>
   );

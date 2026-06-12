@@ -49,6 +49,37 @@ viewport (image, stepper, sticky CTA render correctly).
   (tunnel) would show in-app controls, not native. Fine for the demo; flag if
   on-device dev needs native.
 
+**Commit:** `e09068f`
+
+### ✅ Slice 4 — Cart & checkout
+
+**Built**
+- `/cart` screen: line items (thumbnail, name, price, Stepper, Remove), subtotal,
+  empty state, and a `Checkout · {total}` MainButton. Header cart badge links to
+  `/cart`; product "Add to cart" routes here.
+- Order store (`entities/order/orderStore.ts`) with a minimal, ton-pay-adaptable
+  `Order` model. TDD'd.
+- Checkout places a **simulated** order (ton-pay is gated), clears the cart, and
+  routes to `/status/:id`.
+- `/status/:id` placeholder (order summary + "placed"); slice 6 adds the timeline.
+- `useClosingConfirmation` — Telegram close-confirmation while the cart is filled.
+
+**Verification:** `tsc -b` ✅ · `eslint` ✅ · **62 tests** ✅ · `vite build` ✅ ·
+JS **95.7 KB gzip** (budget 250). Full funnel visually verified
+(catalog → product → cart → checkout → status).
+
+**Key decisions** (full detail in DECISIONS.md → Slice 4)
+- Checkout simulates payment until ton-pay (slice 5) inserts the real TON
+  transfer before `placeOrder` (passing `'ton'` + tx hash).
+- `Order` shape logged for ton-pay/status adaptability.
+
+**Fixed**
+- Intermittent test flake (brand→products double-fetch vs the 1s findBy timeout
+  under load): raised `asyncUtilTimeout` to 3000 ms; suite green 3×/3.
+
+**Queued for human review**
+- Confirm the `Order` shape carries everything ton-pay needs before slice 5.
+
 **Commit:** _(below)_
 
 <!-- appended per slice -->

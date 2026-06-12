@@ -262,3 +262,61 @@ JSON swap.
 `tsc -b` clean · `eslint .` clean · **54 tests pass** · `vite build` clean ·
 initial JS **94.6 KB gzip** (+~15 KB for router+zustand; budget 250) · product
 page visually verified (image, stepper, sticky CTA) in a mobile viewport.
+
+---
+
+## Slice 4 — Cart & checkout (2026-06-13, overnight)
+
+### Cart
+
+- `/cart` screen: line items (thumbnail, name, unit `Price`, `Stepper` to change
+  qty, Remove), a subtotal, an empty state, and the `Checkout · {total}`
+  MainButton (the §5 funnel text). The header cart badge is now a `<Link>` to
+  `/cart`; the product page's "Add to cart" routes here.
+
+### Order model (`entities/order/orderStore.ts`)
+
+- A **minimal, mocked `Order`** (per the slice-6 note), deliberately adaptable:
+  `{ id, items[], totalTon, createdAt, status: 'placed'|'paid'|'delivered',
+  paymentMethod: 'ton'|'simulated', txHash: string|null }`. `paymentMethod` /
+  `txHash` are the seams ton-pay will populate. `placeOrder(lines)` snapshots the
+  cart into an order; `setStatus` drives the timeline. Ids via
+  `crypto.randomUUID()`, `createdAt` via `Date.now()` (app runtime).
+
+### Checkout — simulated (ton-pay is gated)
+
+- Slice 5 (ton-pay) is a hard stop, so checkout **places a simulated order**
+  (`paymentMethod: 'simulated'`, no tx), clears the cart, fires a success haptic,
+  and routes to `/status/:id`. When ton-pay lands it will insert the real TON
+  transfer *before* `placeOrder` and pass `'ton'` + the tx hash — the only change
+  needed. The §3.4 "simulate payment" path is effectively already the default
+  until then.
+
+### Status (placeholder)
+
+- `/status/:id` ships as an order summary + "Order placed" this slice; **slice 6
+  replaces the body with the animated placed → paid → delivered timeline**. It
+  reads the order from the store by id.
+
+### Closing confirmation (§3.6)
+
+- `useClosingConfirmation(cartNotEmpty, inTelegram)` enables Telegram's close
+  confirmation while the cart is non-empty. Gated on `inTelegram` so it makes no
+  SDK calls (and logs no warnings) in tests / outside Telegram.
+
+### For human review
+
+- Checkout simulates payment until ton-pay (slice 5). Confirm the `Order` shape
+  above carries everything ton-pay + the status timeline need before that slice.
+
+### Verification (slice 4)
+
+`tsc -b` clean · `eslint .` clean · **62 tests pass** (stabilized — see below) ·
+`vite build` clean · initial JS **95.7 KB gzip** (budget 250) · full funnel
+visually verified: catalog → product → add → cart (rows/stepper/remove/subtotal)
+→ checkout → order-placed status.
+
+- **Test-flake fix:** the brand → products double-fetch occasionally tripped the
+  default 1s `findBy` timeout under heavy parallel jsdom load (intermittent, file
+  order-dependent). Raised Testing Library's `asyncUtilTimeout` to 3000 ms in the
+  test setup; full suite then green 3×/3 consecutive runs.

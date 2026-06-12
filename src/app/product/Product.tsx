@@ -71,8 +71,7 @@ export function Product() {
   const handleAdd = () => {
     add(product, qty);
     haptics.notification('success');
-    // Slice 4 routes this to the cart; for now, return to browsing.
-    navigate('/');
+    navigate('/cart');
   };
 
   return (
