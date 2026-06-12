@@ -350,3 +350,39 @@ visually verified: catalog → product → add → cart (rows/stepper/remove/sub
 `tsc -b` clean · `eslint .` clean · **65 tests pass** (incl. a fake-timer
 auto-advance test) · `vite build` clean · initial JS **96.3 KB gzip** (budget
 250) · timeline visually verified: full funnel → animated placed→paid→delivered.
+
+---
+
+## Slice 7 — Outside-Telegram fallback (2026-06-13, overnight)
+
+### Fallback page
+
+- Opened outside Telegram (`!inTelegram`), the app renders a slim, branded page
+  (SPEC §3.9): shop logo + name, "This app lives inside Telegram", a **QR code**,
+  and an "Open in Telegram" deep-link button. The decision happens in main.tsx
+  before the router mounts. A DEV-only `?fallback` query previews it.
+
+### New dependency — `qrcode.react` (with rationale)
+
+- §3.9 explicitly requires a QR code, and there's no reliable zero-dep way to
+  render one. Added `qrcode.react` (tiny, zero transitive deps). **Lazy-loaded**
+  via `React.lazy`, so it builds into its own chunk (≈6.9 KB gzip) fetched *only*
+  outside Telegram — the in-Telegram initial bundle is unchanged. This also
+  exercises the slice-2 directive "code-split per route if needed."
+
+### Bot deep link
+
+- `src/config/app.ts` → `APP.botUrl` is a **placeholder** (`https://t.me/
+  your_storefront_bot`) used by the QR + button. **Must be set to the real bot
+  link in slice 8** (bot). Flagged for review.
+
+### For human review
+
+- `APP.botUrl` placeholder — finalize when the bot ships (slice 8).
+
+### Verification (slice 7)
+
+`tsc -b` clean · `eslint .` clean · **67 tests pass** · `vite build` clean ·
+initial JS **96.9 KB gzip** (budget 250); fallback + QR isolated to a **6.9 KB
+gzip lazy chunk** · fallback visually verified (branded page, real QR, deep link)
+via the dev `?fallback` preview.

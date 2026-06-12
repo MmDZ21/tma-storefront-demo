@@ -98,6 +98,29 @@ visually verified through the full funnel.
 - Timeline auto-advances for the demo; the order's `paymentMethod`/`txHash` seams
   let ton-pay drive the `paid` step for real later.
 
+**Commit:** `34b191d`
+
+### ✅ Slice 7 — Outside-Telegram fallback
+
+**Built**
+- Branded fallback page (§3.9) shown outside Telegram: logo, shop name, "This app
+  lives inside Telegram", a **QR code**, and an "Open in Telegram" deep link.
+  DEV-only `?fallback` preview.
+- New dep `qrcode.react` (tiny, zero transitive), **lazy-loaded** → own chunk
+  (≈6.9 KB gzip) fetched only outside Telegram; in-Telegram bundle unchanged.
+
+**Verification:** `tsc -b` ✅ · `eslint` ✅ · **67 tests** ✅ · `vite build` ✅ ·
+initial JS **96.9 KB gzip** (budget 250) + isolated 6.9 KB fallback chunk.
+Fallback visually verified (branded page, real QR, deep link).
+
+**Key decisions** (DECISIONS.md → Slice 7)
+- `qrcode.react` added with rationale (QR required by §3.9; lazy-split so it never
+  ships to in-Telegram users — also satisfies slice-2 "code-split if needed").
+
+**Queued for human review**
+- `src/config/app.ts` → `APP.botUrl` is a **placeholder**; set the real bot deep
+  link in slice 8.
+
 **Commit:** _(below)_
 
 <!-- appended per slice -->
