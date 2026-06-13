@@ -456,3 +456,132 @@ Three prep tasks accepted from the consolidated diff review, **before** ton-pay
 `tsc -b` clean · `eslint .` clean · **76 tests pass** (was 73: +2 order, +1 catalog) ·
 `vite build` clean · initial JS **97.0 KB gzip** (budget 250); fallback chunk **6.9 KB
 gzip**. ton-pay (slice 5) not started — gated.
+
+---
+
+## Slice 5 — TON pay (testnet) — BUILD pass (2026-06-13)
+
+Real TON Connect payment on **testnet only** (SPEC §3.3; §4 forbids mainnet/fiat/Stars).
+This is the **build** pass — a separate security review follows, so the
+security-sensitive pieces below are flagged, not certified.
+
+### Dependency — `@tonconnect/ui-react` v3 (authorized)
+
+- The one new top-level dep for this slice (the user named it). Wallet connect +
+  `sendTransaction` UI for TON Connect.
+- **`npm audit` reports 11 high-severity advisories** in its transitive tree. Left
+  **un-fixed on purpose** — `audit fix --force` pulls breaking majors; triaging these
+  belongs to the security pass. Flagged below.
+
+### Testnet enforcement (§4)
+
+- `sendTransaction` pins `network: CHAIN.TESTNET`, so a mainnet-connected wallet is
+  rejected rather than silently charged. No mainnet/fiat/Stars path exists.
+
+### Money in nanotons — one conversion helper (`src/shared/ton.ts`)
+
+- `tonToNano` / `nanoToTon` (1 TON = 1e9 nanoton). All money arithmetic is in nanoton
+  **bigints**; `cartTotalNano` sums `tonToNano(price) * qty` so **no float math ever
+  touches money**. Floats appear only in final display formatting.
+- **String** inputs are exact (>9 decimals throws). **Number** inputs (the `priceTon`
+  floats from products.json) are snapped to nanoton via `toFixed(9)` — exact for the
+  coarse decimals real prices use. Unit-tested with boundary values incl. the classic
+  `0.1 + 0.2` float trap (passes in nanoton space).
+- **Deviation from SPEC §3.3** ("0.01 TON transfer"): per the slice-5 instruction the
+  amount is the **cart total** (testnet TON is valueless, so the 0.01 safety rationale
+  doesn't apply).
+
+### Order seam (slice-4 prep) — used as designed
+
+- TON checkout calls `placeOrder(items, 'ton', null, { boc, amountNano, payerAddress })`.
+  `txHash` stays **null** until the indexer confirms; status stays **'placed'**.
+- New store method `confirmPayment(id, txHash)` records the hash + advances to 'paid'.
+
+### Cart — two paths, MainButton drives the funnel (§3.3/§3.4/§5)
+
+- **Pay with TON**: the MainButton reads "Connect wallet to pay" → (once connected)
+  "Pay with TON · {total}" → "Confirm in your wallet…", matching §5's funnel text.
+  First tap opens the wallet picker; the next pays.
+- **Demo mode: simulate payment** (§3.4): always-visible secondary button so a viewer
+  with no wallet still completes the funnel — never dead-ends. Simulated orders keep
+  `paymentMethod: 'simulated'` and carry **no** on-chain fields.
+- Wallet rejection is caught (error haptic, stay on cart) — no dead-end.
+
+### Confirmation — real flow drives 'paid' (§3.5)  ⚠️ security-pass scrutiny
+
+- A TON order in 'placed' polls the **toncenter v3 testnet indexer** for the matching
+  incoming payment (`useTonConfirmation`, fetch-only, bounded ~20×3s, abortable). On a
+  match it records the real tx hash and advances to 'paid' — so the **real chain**, not
+  the demo timer, drives the 'paid' step. The timer is gated off for such orders; it
+  still animates simulated orders and the paid→delivered (mocked fulfilment) step.
+- **`matchPaymentTx` matches on amount + time only** — it does NOT verify the sender or
+  bind to our specific external message. Hardening (message-hash matching via @ton/core,
+  or a per-order comment nonce) is a **deliberate follow-up for the security pass**.
+  If the indexer is unreachable / no match in the window, the order stays 'placed' with
+  an "awaiting confirmation" hint + explorer link (never dead-ends).
+- Status shows a testnet **explorer link** (`testnet.tonviewer.com`) once `txHash` is set.
+
+### Manifest + config (§5)
+
+- `public/tonconnect-manifest.json` — `manifestUrl()` derives the URL from the live
+  origin (works on any Cloudflare Pages origin, and on `http://localhost` in dev which
+  TON Connect permits). **Must be served over HTTPS in production (§5).** The manifest's
+  own `url`/`iconUrl` are a **placeholder** origin (`tma-storefront-demo.pages.dev`) —
+  set to the real deploy origin. `TON_RECIPIENT_TESTNET` is a **placeholder** testnet
+  address — set to the demo's real testnet receiver before on-device QA (like
+  `APP.botUrl`).
+
+### Bundle — SDK code-split out of first paint (§7)
+
+- `@tonconnect/ui-react` is ~132 KB gzip. The cart route is **lazy-loaded**
+  (`App` → `Suspense` → `CartRoute` → `TonPayProvider`), so the SDK ships in the **cart
+  chunk**, fetched only when the cart opens. First-paint (catalog/product) stays at
+  **97.8 KB gzip**.
+- The `features/ton-pay` **barrel is kept SDK-free** (confirmation + explorer only).
+  The SDK isn't marked side-effect-free, so a barrel that re-exported the wallet pieces
+  dragged it into the main chunk (measured: 229 KB) when Status imported the barrel.
+  Fix: Status imports the SDK-free barrel; the lazy cart route imports
+  `TonPayProvider` / `useTonPay` from their modules directly.
+
+### SDK isolation (§6) — verified
+
+- Zero raw `@tonconnect/*` imports in `src/app/**` (only comments + the test stub).
+  Screens go through the adapter: Cart→`useTonPay`, CartRoute→`TonPayProvider`,
+  Status→`useTonConfirmation`/`explorerTxUrl`.
+
+### Tests
+
+- `@tonconnect/ui-react` is **aliased to a deterministic stub** in `vite.config`
+  `test.alias` (connected testnet wallet, fixed BOC) — no heavy SDK in jsdom, real
+  adapter code exercised. `tonToNano`/`nanoToTon` (7) and `matchPaymentTx` (5) unit
+  tests; the two Cart **payment paths** (simulated vs TON, asserting the exact nanoton
+  amount and on-chain fields). 76 → **89 tests**.
+
+### For the security pass (do not self-certify)
+
+1. **`matchPaymentTx` heuristic** (amount + time only) — sender/message not bound.
+2. **Indexer trust boundary** — toncenter response is `unknown`-cast; no schema check,
+   no API key, public rate limits.
+3. **`npm audit`: 11 high-severity** advisories in the TON Connect tree — triage.
+4. **Placeholders**: manifest origin + `TON_RECIPIENT_TESTNET` must be set for the live
+   flow; manifest must be HTTPS.
+5. **initData is still not server-validated** (SPEC §5 wants `/server-notes.md` with the
+   HMAC snippet) — separate from payments, not in this slice.
+6. Real-wallet path is **typechecked + stub-tested only**; needs on-device QA via the
+   `:10808` proxy (no wallet in this env).
+
+### Visual QA
+
+Mobile viewport (390×844), dev mock: catalog → product → **Add to cart → /cart** lazily
+mounts the **real** `TonConnectUIProvider` with **0 console errors**; cart shows
+"Connect wallet to pay" + "Demo mode: simulate payment"; simulate → status timeline
+animates placed→paid→delivered. (The only warning is the pre-existing DEV StrictMode
+brand-abort, unrelated.)
+
+### Verification (slice 5)
+
+`tsc -b` clean · `eslint .` clean · **89 tests pass** (was 76: +7 nanoton, +5 confirm
+matching, +1 Cart path) · `vite build` clean · first-paint JS **97.8 KB gzip**
+(budget 250); TON Connect SDK isolated to a lazy **132 KB gzip** cart chunk. Real-wallet
+flow not exercised (no wallet in env) — on-device QA pending. Security review **not**
+done — gated.

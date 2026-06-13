@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBrand } from '@/features/theming';
 import { haptics, useBackButton, useTelegram } from '@/features/telegram';
-import { cartTotalTon, useCartStore, type CartLine } from '@/entities/cart/cartStore';
+import { cartTotalNano, useCartStore, type CartLine } from '@/entities/cart/cartStore';
 import { useOrderStore } from '@/entities/order/orderStore';
-import { formatTokenAmount } from '@/shared/format';
+import { useTonPay } from '@/features/ton-pay/useTonPay';
+import { nanoToTon } from '@/shared/ton';
 import { Price } from '@/shared/ui/Price';
 import { Stepper } from '@/shared/ui/Stepper';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
@@ -39,7 +41,13 @@ function CartRow({ line }: { line: CartLine }) {
   );
 }
 
-/** Cart & checkout (SPEC §3.3). Checkout places a simulated order (ton-pay later). */
+/**
+ * Cart & checkout (SPEC §3.3/§3.4). Two paths into a placed order:
+ * - **Pay with TON** — real TON Connect testnet transfer; the Order records the BOC,
+ *   exact nanoton amount, and payer (status stays 'placed' until the indexer confirms).
+ * - **Demo mode: simulate payment** — the no-wallet escape hatch so a viewer without a
+ *   wallet still completes the funnel. Never dead-ends the demo.
+ */
 export function Cart() {
   const navigate = useNavigate();
   const brand = useBrand();
@@ -47,20 +55,57 @@ export function Cart() {
   const lines = useCartStore((s) => s.lines);
   const clear = useCartStore((s) => s.clear);
   const placeOrder = useOrderStore((s) => s.placeOrder);
+  const { connected, connect, pay } = useTonPay();
+  const [paying, setPaying] = useState(false);
 
   const goBack = () => navigate(-1);
   useBackButton(goBack, nativeControls);
 
   const items = Object.values(lines);
-  const total = cartTotalTon(lines);
+  const totalNano = cartTotalNano(lines);
+  const totalLabel = `${nanoToTon(totalNano)} ${brand.currency.label}`;
 
-  const checkout = () => {
-    // ton-pay (slice 5) will insert the real TON transfer before this point.
-    const order = placeOrder(items);
+  const finish = (orderId: string) => {
     clear();
     haptics.notification('success');
-    navigate(`/status/${order.id}`);
+    navigate(`/status/${orderId}`);
   };
+
+  // Real TON payment (SPEC §3.3). First tap connects a wallet; once connected, pay.
+  const payWithTon = async () => {
+    if (!connected) {
+      connect();
+      return;
+    }
+    setPaying(true);
+    try {
+      const result = await pay(totalNano);
+      const order = placeOrder(items, 'ton', null, {
+        boc: result.boc,
+        amountNano: result.amountNano,
+        payerAddress: result.payerAddress,
+      });
+      finish(order.id);
+    } catch (error) {
+      // Wallet rejected / closed — never dead-end; stay on the cart so they can retry
+      // or use the demo path.
+      haptics.notification('error');
+      if (import.meta.env.DEV) console.warn('[ton-pay] payment failed:', error);
+      setPaying(false);
+    }
+  };
+
+  // No-wallet path (SPEC §3.4): a simulated order carries no on-chain fields.
+  const simulatePayment = () => {
+    const order = placeOrder(items);
+    finish(order.id);
+  };
+
+  const primaryText = paying
+    ? 'Confirm in your wallet…'
+    : connected
+      ? `Pay with TON · ${totalLabel}`
+      : 'Connect wallet to pay';
 
   return (
     <>
@@ -94,7 +139,7 @@ export function Cart() {
         </main>
       ) : (
         <>
-          <main className="mx-auto w-full max-w-md px-4 pb-28">
+          <main className="mx-auto w-full max-w-md px-4 pb-40">
             <ul>
               {items.map((line) => (
                 <CartRow key={line.product.id} line={line} />
@@ -102,13 +147,23 @@ export function Cart() {
             </ul>
             <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
               <span className="text-sm text-muted-foreground">Subtotal</span>
-              <Price priceTon={total} className="text-base" />
+              <Price priceTon={Number(nanoToTon(totalNano))} className="text-base" />
             </div>
+
+            <button
+              type="button"
+              onClick={simulatePayment}
+              disabled={paying}
+              className="mt-6 w-full rounded-control border border-border bg-muted py-3 text-sm font-medium text-foreground disabled:opacity-50"
+            >
+              Demo mode: simulate payment
+            </button>
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+              No wallet? Simulate the payment to finish the demo. Real payments use TON testnet.
+            </p>
           </main>
-          <PrimaryButton
-            text={`Checkout · ${formatTokenAmount(total)} ${brand.currency.label}`}
-            onClick={checkout}
-          />
+
+          <PrimaryButton text={primaryText} onClick={() => void payWithTon()} disabled={paying} />
         </>
       )}
     </>

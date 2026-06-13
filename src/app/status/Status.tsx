@@ -7,6 +7,7 @@ import {
   useOrderStore,
   type OrderStatus,
 } from '@/entities/order/orderStore';
+import { useTonConfirmation, explorerTxUrl } from '@/features/ton-pay';
 import { Price } from '@/shared/ui/Price';
 
 const STEPS: { key: OrderStatus; label: string; desc: string }[] = [
@@ -31,21 +32,32 @@ export function Status() {
   const { nativeControls } = useTelegram();
   const order = useOrderStore((s) => (id ? s.orders[id] : undefined));
   const setStatus = useOrderStore((s) => s.setStatus);
+  const confirmPayment = useOrderStore((s) => s.confirmPayment);
 
   const goHome = () => navigate('/');
   useBackButton(goHome, nativeControls);
 
-  // Drive the mocked timeline forward. When ton-pay lands, the 'paid' step will
-  // be triggered by the real transfer instead of this timer.
   const orderId = order?.id;
   const status = order?.status;
+  // A real TON order waits in 'placed' until the indexer confirms the transfer — the
+  // demo timer must not advance it. Simulated orders auto-advance the whole timeline.
+  const awaitingTon = order?.paymentMethod === 'ton' && status === 'placed';
+
+  // Real flow drives the 'paid' step for TON orders (SPEC §3.5): watch testnet for the
+  // matching incoming payment, then record its tx hash and advance to 'paid'.
+  useTonConfirmation(awaitingTon ? (order ?? null) : null, (txHash) => {
+    if (orderId) confirmPayment(orderId, txHash);
+  });
+
+  // Mocked timeline: advance every step on a timer, except a TON order awaiting its
+  // real on-chain confirmation.
   useEffect(() => {
-    if (!orderId || !status) return;
+    if (!orderId || !status || awaitingTon) return;
     const next = nextStatus(status);
     if (!next) return;
     const timer = setTimeout(() => setStatus(orderId, next), STEP_DURATION);
     return () => clearTimeout(timer);
-  }, [orderId, status, setStatus]);
+  }, [orderId, status, awaitingTon, setStatus]);
 
   if (!order) {
     return (
@@ -71,6 +83,19 @@ export function Status() {
         {HEADINGS[order.status]}
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">Order #{order.id.slice(0, 8)}</p>
+      {awaitingTon && (
+        <p className="mt-2 text-sm text-muted-foreground">Confirming payment on TON testnet…</p>
+      )}
+      {order.txHash && (
+        <a
+          href={explorerTxUrl(order.txHash)}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-2"
+        >
+          View transaction on testnet explorer ↗
+        </a>
+      )}
 
       <ol className="relative mt-8 ml-1">
         <span

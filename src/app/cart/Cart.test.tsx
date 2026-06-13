@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { stubFetchRoutes } from '@/test/stubFetch';
+import { STUB_ADDRESS, STUB_BOC } from '@/test/tonconnect-stub';
 import type { Product } from '@/config/products';
 import { useCartStore } from '@/entities/cart/cartStore';
 import { useOrderStore } from '@/entities/order/orderStore';
@@ -34,13 +35,13 @@ describe('<Cart />', () => {
     vi.unstubAllGlobals();
   });
 
-  it('lists cart items with a subtotal', async () => {
+  it('lists cart items with a subtotal and the pay CTA', async () => {
     renderWithProviders(<App />, { route: '/cart' });
     expect(await screen.findByText('Ethiopia')).toBeInTheDocument();
     expect(screen.getByText('Brazil')).toBeInTheDocument();
-    // 1.5*2 + 1.3 = 4.3 — the checkout button carries the running total (SPEC §5).
+    // 1.5*2 + 1.3 = 4.3 — the MainButton carries the running total (SPEC §5).
     expect(screen.getByText('Subtotal')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /checkout.*4\.3 TON/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /pay with TON.*4\.3 TON/i })).toBeInTheDocument();
   });
 
   it('removes a line item', async () => {
@@ -51,17 +52,38 @@ describe('<Cart />', () => {
     expect(screen.getByText('Ethiopia')).toBeInTheDocument();
   });
 
-  it('checks out into a placed order and clears the cart', async () => {
+  it('simulates payment into a placed order with no on-chain fields (no-wallet path)', async () => {
     renderWithProviders(<App />, { route: '/cart' });
     await screen.findByText('Ethiopia');
 
-    await userEvent.click(screen.getByRole('button', { name: /checkout/i }));
+    await userEvent.click(screen.getByRole('button', { name: /demo mode: simulate payment/i }));
 
+    await waitFor(() => expect(Object.keys(useCartStore.getState().lines)).toHaveLength(0));
     const orders = Object.values(useOrderStore.getState().orders);
     expect(orders).toHaveLength(1);
+    expect(orders[0]?.paymentMethod).toBe('simulated');
     expect(orders[0]?.status).toBe('placed');
+    expect(orders[0]?.amountNano).toBeUndefined();
+    expect(orders[0]?.boc).toBeUndefined();
+  });
+
+  it('pays with TON into a placed order carrying the on-chain fields', async () => {
+    renderWithProviders(<App />, { route: '/cart' });
+    await screen.findByText('Ethiopia');
+
+    await userEvent.click(screen.getByRole('button', { name: /pay with TON/i }));
+
+    // Navigated to the status screen for a TON order awaiting confirmation.
+    expect(await screen.findByText(/confirming payment on TON testnet/i)).toBeInTheDocument();
+
+    const order = Object.values(useOrderStore.getState().orders)[0];
+    expect(order?.paymentMethod).toBe('ton');
+    expect(order?.status).toBe('placed'); // stays placed until the indexer confirms
+    expect(order?.txHash).toBeNull();
+    expect(order?.amountNano).toBe('4300000000'); // exact nanotons, no float
+    expect(order?.boc).toBe(STUB_BOC);
+    expect(order?.payerAddress).toBe(STUB_ADDRESS);
     expect(Object.keys(useCartStore.getState().lines)).toHaveLength(0);
-    expect(await screen.findByText(/order placed/i)).toBeInTheDocument();
   });
 
   it('shows an empty state when there are no items', async () => {

@@ -68,6 +68,8 @@ interface OrderState {
     payment?: PaymentDetails,
   ) => Order;
   setStatus: (id: string, status: OrderStatus) => void;
+  /** Record an indexer-confirmed transfer: stores the tx hash and advances to 'paid'. */
+  confirmPayment: (id: string, txHash: string) => void;
 }
 
 function lineToItem(line: CartLine): OrderItem {
@@ -105,5 +107,12 @@ export const useOrderStore = create<OrderState>((set) => ({
       const existing = state.orders[id];
       if (!existing) return state;
       return { orders: { ...state.orders, [id]: { ...existing, status } } };
+    }),
+
+  confirmPayment: (id, txHash) =>
+    set((state) => {
+      const existing = state.orders[id];
+      if (!existing) return state;
+      return { orders: { ...state.orders, [id]: { ...existing, txHash, status: 'paid' } } };
     }),
 }));

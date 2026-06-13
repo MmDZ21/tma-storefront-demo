@@ -20,5 +20,11 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     css: true,
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    // Stub the heavy TON Connect SDK in tests; the production build uses the real one.
+    alias: {
+      '@tonconnect/ui-react': fileURLToPath(
+        new URL('./src/test/tonconnect-stub.tsx', import.meta.url),
+      ),
+    },
   },
 });
