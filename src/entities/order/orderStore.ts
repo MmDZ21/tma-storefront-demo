@@ -22,10 +22,25 @@ export interface OrderItem {
 }
 
 /**
- * Minimal, mocked order model (SPEC §3.5). Deliberately adaptable: `paymentMethod`
- * and `txHash` are placeholders the ton-pay slice will populate once it inserts a
- * real TON transfer between checkout and "placed". The status timeline reads off
- * `status` (placed → paid → delivered).
+ * On-chain payment details captured by ton-pay (SPEC §3.4, slice 5). All optional,
+ * so a simulated order omits them entirely. TON Connect's `sendTransaction` returns
+ * a `boc` immediately, while the confirmed `txHash` is resolved later from an
+ * indexer — hence both exist and are distinct. `amountNano` keeps the exact integer
+ * amount (nanotons) that `totalTon` (a float) can't represent for on-chain matching.
+ */
+export interface PaymentDetails {
+  /** Exact amount sent on-chain, in nanotons (string preserves integer precision). */
+  amountNano?: string;
+  /** TON Connect `sendTransaction` result (base64 BOC), before indexer confirmation. */
+  boc?: string;
+  /** Address of the wallet that paid. */
+  payerAddress?: string;
+}
+
+/**
+ * Minimal, mocked order model (SPEC §3.5). Deliberately adaptable: ton-pay (slice 5)
+ * populates the payment fields once it inserts a real TON transfer at checkout. The
+ * status timeline reads off `status` (placed → paid → delivered).
  */
 export interface Order {
   id: string;
@@ -34,13 +49,24 @@ export interface Order {
   createdAt: number;
   status: OrderStatus;
   paymentMethod: PaymentMethod;
-  /** Set by ton-pay (testnet tx hash); null for a simulated order. */
+  /** Set once the indexer confirms the transfer; null for a simulated/unconfirmed order. */
   txHash: string | null;
+  /** Exact amount sent on-chain, in nanotons. Set by ton-pay; absent when simulated. */
+  amountNano?: string;
+  /** TON Connect `sendTransaction` result (BOC), pre-confirmation. Set by ton-pay. */
+  boc?: string;
+  /** Wallet address that paid. Set by ton-pay; absent when simulated. */
+  payerAddress?: string;
 }
 
 interface OrderState {
   orders: Record<string, Order>;
-  placeOrder: (lines: CartLine[], paymentMethod?: PaymentMethod, txHash?: string | null) => Order;
+  placeOrder: (
+    lines: CartLine[],
+    paymentMethod?: PaymentMethod,
+    txHash?: string | null,
+    payment?: PaymentDetails,
+  ) => Order;
   setStatus: (id: string, status: OrderStatus) => void;
 }
 
@@ -57,7 +83,7 @@ function lineToItem(line: CartLine): OrderItem {
 export const useOrderStore = create<OrderState>((set) => ({
   orders: {},
 
-  placeOrder: (lines, paymentMethod = 'simulated', txHash = null) => {
+  placeOrder: (lines, paymentMethod = 'simulated', txHash = null, payment = {}) => {
     const order: Order = {
       id: crypto.randomUUID(),
       items: lines.map(lineToItem),
@@ -66,6 +92,9 @@ export const useOrderStore = create<OrderState>((set) => ({
       status: 'placed',
       paymentMethod,
       txHash,
+      // Spreads amountNano/boc/payerAddress when ton-pay provides them; a simulated
+      // order passes none, so those keys stay absent.
+      ...payment,
     };
     set((state) => ({ orders: { ...state.orders, [order.id]: order } }));
     return order;

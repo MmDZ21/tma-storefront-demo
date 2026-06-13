@@ -386,3 +386,73 @@ auto-advance test) · `vite build` clean · initial JS **96.3 KB gzip** (budget
 initial JS **96.9 KB gzip** (budget 250); fallback + QR isolated to a **6.9 KB
 gzip lazy chunk** · fallback visually verified (branded page, real QR, deep link)
 via the dev `?fallback` preview.
+
+---
+
+## Pre-ton-pay prep (2026-06-13, after review) — order seam · single fetch · slice-8 routing TODO
+
+Three prep tasks accepted from the consolidated diff review, **before** ton-pay
+(slice 5) — which stays gated pending a separate security-review frame.
+
+### A. Order model — on-chain payment seam (additive, non-breaking)
+
+- Added three **optional** fields to `Order` so ton-pay (slice 5) lands without a
+  schema migration: `amountNano?: string` (exact nanoton amount — `totalTon` is a
+  float and can't be reconciled against on-chain integers), `boc?: string` (TON
+  Connect `sendTransaction` result, available immediately), and
+  `payerAddress?: string`. `txHash: string | null` is **kept** and stays null until
+  an indexer confirms the transfer — so `boc` (submitted) and `txHash` (confirmed)
+  are deliberately distinct.
+- `placeOrder` gained an optional 4th arg `payment?: PaymentDetails`, spread onto the
+  order. Existing calls (`placeOrder(items)`, `placeOrder(lines, 'ton', hash)`) are
+  unchanged; a simulated order omits all three keys entirely. The ton path is
+  `placeOrder(lines, 'ton', null, { amountNano, boc, payerAddress })`.
+- Tests added: "carries on-chain payment details for a TON order before confirmation"
+  (ton path) and "omits on-chain payment details for a simulated order" (simulated
+  path). All fields optional → the prior suite stays green.
+- **Assumption:** ton-pay confirms payment by later setting `txHash` (+ advancing
+  status to `paid`); that confirmation method is slice 5's job, not built now.
+
+### B. Single product fetch — kill the skin-mismatch double-fetch
+
+- **Cause (not the test timeout):** `ThemeProvider` rendered children with
+  `DEFAULT_BRAND` immediately, so `useProducts(brand.productsFile)` fired against the
+  *default* skin's file, then re-fired when the real brand resolved to a *different*
+  file — two fetches and a products loading→ready flicker on any re-skin.
+- **Fix:** `BrandContext` now exposes `ready` (true once `loadBrand` settles —
+  resolved *or* fell back to default) via a new `useBrandReady()` hook.
+  `useProducts(productsFile: string | null)` treats `null` as "not ready, stay in
+  loading (skeleton), fetch nothing". Catalog + Product call
+  `useProducts(ready ? brand.productsFile : null)`, so the catalog fetches the
+  **resolved** skin's products **exactly once**. The brand context value is memoized
+  so unrelated theme (`isDark`) re-renders don't churn brand consumers.
+- **Tradeoff:** products now fetch strictly after the (tiny, same-origin) brand fetch
+  rather than racing it from a default — correct, imperceptible for the demo, and it
+  removes the flicker, which matters for a re-skinnable template.
+- Regression test added: "fetches the active skin's products exactly once (no
+  default-skin pre-fetch)" — a sneakers brand whose `productsFile` differs from the
+  default; asserts a single product fetch, to the resolved path. (Fails on the old
+  code, which fetched both coffee and sneakers.)
+
+### C. ⚠️ BLOCKING for slice 8 — HashRouter vs `tgWebAppStartParam` deep links
+
+- **Conflict:** Telegram delivers launch data in the URL **hash**
+  (`#tgWebAppData=…&tgWebAppStartParam=PAYLOAD`). `HashRouter` also owns the hash, so
+  on a real-client deep link (`t.me/<bot>/<app>?startapp=PAYLOAD`) the initial hash is
+  the Telegram params — not a route — and HashRouter matches nothing while the
+  `startapp` payload is dropped. This passes every local gate because the **dev mock
+  injects launch params via the SDK store, not the URL hash**, so local/jsdom never
+  reproduces it. It is **not broken yet** only because nothing consumes
+  `tgWebAppStartParam` until slice 8.
+- **Agreed fix (deferred to slice 8 + on-device QA via the `:10808` proxy — NOT
+  implemented now):** keep `HashRouter` (refresh-safe on static hosting); in
+  `main.tsx`, after `initTelegram()` caches launch params to `sessionStorage`, read
+  `retrieveLaunchParams().tgWebAppStartParam`, map it to a route, and set
+  `window.location.hash` to that route **before** mounting `<HashRouter>`. Recorded
+  as a comment at the mount site in `src/main.tsx`.
+
+### Verification (prep)
+
+`tsc -b` clean · `eslint .` clean · **76 tests pass** (was 73: +2 order, +1 catalog) ·
+`vite build` clean · initial JS **97.0 KB gzip** (budget 250); fallback chunk **6.9 KB
+gzip**. ton-pay (slice 5) not started — gated.

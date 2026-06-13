@@ -71,4 +71,42 @@ describe('<Catalog />', () => {
     expect(screen.getByText('Ethiopia Yirgacheffe')).toBeInTheDocument();
     expect(screen.queryByText('Espresso Forte')).not.toBeInTheDocument();
   });
+
+  it('fetches the active skin’s products exactly once (no default-skin pre-fetch)', async () => {
+    // A skin whose products file differs from DEFAULT_BRAND.productsFile
+    // (/config/products.coffee.json) — the case that used to double-fetch.
+    const sneakerBrand = { ...brand, productsFile: '/config/products.sneakers.json' };
+    const sneakerProducts = {
+      products: [
+        {
+          id: 'cloud-runner',
+          name: 'Cloud Runner',
+          description: 'Featherweight daily trainer.',
+          priceTon: 2.2,
+          image: '/img/products/sneaker-cloud-runner.svg',
+          category: 'Road',
+        },
+      ],
+    };
+    const fetchSpy = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input); // loaders always pass string paths in this test
+      if (url.includes('brand.json')) {
+        return new Response(JSON.stringify(sneakerBrand), { status: 200 });
+      }
+      if (url.includes('products.sneakers.json')) {
+        return new Response(JSON.stringify(sneakerProducts), { status: 200 });
+      }
+      return new Response('not found', { status: 404 });
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+
+    renderWithProviders(<Catalog />);
+    await screen.findByText('Cloud Runner');
+
+    const productFetches = fetchSpy.mock.calls.filter(([input]) =>
+      String(input).includes('/config/products.'),
+    );
+    expect(productFetches).toHaveLength(1);
+    expect(String(productFetches[0]?.[0])).toContain('products.sneakers.json');
+  });
 });

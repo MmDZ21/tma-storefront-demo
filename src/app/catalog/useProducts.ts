@@ -6,11 +6,17 @@ export type ProductsState =
   | { status: 'ready'; products: Product[] }
   | { status: 'error' };
 
-/** Loads + validates the active brand's products file, abortably. */
-export function useProducts(productsFile: string): ProductsState {
+/**
+ * Loads + validates the active brand's products file, abortably. Pass `null` while
+ * the brand is still resolving — the hook stays in `loading` and fetches nothing, so
+ * the catalog fetches the resolved skin's products exactly once (no default-skin
+ * pre-fetch). See `useBrandReady`.
+ */
+export function useProducts(productsFile: string | null): ProductsState {
   const [state, setState] = useState<ProductsState>({ status: 'loading' });
 
   useEffect(() => {
+    if (productsFile === null) return; // brand not resolved yet — stay in loading
     const controller = new AbortController();
     setState({ status: 'loading' });
     loadProducts(productsFile, controller.signal)

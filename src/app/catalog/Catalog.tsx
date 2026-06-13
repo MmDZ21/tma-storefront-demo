@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useBrand } from '@/features/theming';
+import { useBrand, useBrandReady } from '@/features/theming';
 import { deriveCategories } from '@/config/products';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { Header } from '@/app/Header';
@@ -13,7 +13,9 @@ const ALL = 'All';
 /** Catalog screen — category chips + a product grid, with skeletons on load. */
 export function Catalog() {
   const brand = useBrand();
-  const state = useProducts(brand.productsFile);
+  const brandReady = useBrandReady();
+  // Defer until the brand resolves so we fetch the active skin's products once.
+  const state = useProducts(brandReady ? brand.productsFile : null);
   const [category, setCategory] = useState(ALL);
 
   const categories = useMemo(

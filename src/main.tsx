@@ -44,6 +44,21 @@ async function bootstrap(): Promise<void> {
               <OutsideTelegram />
             </Suspense>
           ) : (
+            /*
+             * TODO(slice 8 — BLOCKING, needs on-device QA via the :10808 proxy):
+             * Telegram delivers launch data in the URL *hash*
+             * (#tgWebAppData=…&tgWebAppStartParam=PAYLOAD). HashRouter also owns the
+             * hash, so on a real-client deep link (t.me/<bot>/<app>?startapp=PAYLOAD)
+             * the initial hash is the Telegram params — not a route — and HashRouter
+             * matches nothing while the startapp payload is dropped. The dev mock
+             * injects launch params via the SDK store (not the URL), which is why
+             * local/jsdom never reproduces this. Agreed fix (do NOT implement before
+             * slice 8): after initTelegram() caches launch params to sessionStorage,
+             * read retrieveLaunchParams().tgWebAppStartParam, map it to a route, and
+             * set window.location.hash to that route BEFORE mounting <HashRouter>.
+             * Keep HashRouter (refresh-safe on static hosting). See DECISIONS.md →
+             * "Pre-ton-pay prep" (blocking TODO for slice 8).
+             */
             <HashRouter>
               <App />
             </HashRouter>

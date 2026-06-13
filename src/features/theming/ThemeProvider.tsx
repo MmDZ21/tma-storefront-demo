@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { themeParams, useSignal } from '@telegram-apps/sdk-react';
 import { DEFAULT_BRAND, loadBrand, type Brand } from '@/config/brand';
 import { applyBrandTheme } from './brandTheme';
@@ -13,6 +13,9 @@ import { BrandContext } from './BrandContext';
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [brand, setBrand] = useState<Brand>(DEFAULT_BRAND);
+  // False until loadBrand settles; gates the first products fetch so the catalog
+  // loads the resolved skin exactly once (no default-skin pre-fetch flicker).
+  const [brandReady, setBrandReady] = useState(false);
   // themeParams.isDark tracks Telegram's live theme (updated on `theme_changed`),
   // and stays consistent with the colors themeParams.bindCssVars() applies.
   const isDark = useSignal(themeParams.isDark) === true;
@@ -26,6 +29,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         if (import.meta.env.DEV) {
           console.warn('[brand] using default brand:', error);
         }
+      })
+      .finally(() => {
+        // Settled (resolved or fell back to default) — release the products fetch.
+        // Skip if aborted (StrictMode remount / unmount) to avoid a stale update.
+        if (!controller.signal.aborted) setBrandReady(true);
       });
     return () => controller.abort();
   }, []);
@@ -48,5 +56,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     markTelegramReady();
   }, []);
 
-  return <BrandContext.Provider value={brand}>{children}</BrandContext.Provider>;
+  // Memoized so unrelated theme (isDark) re-renders don't churn brand consumers.
+  const brandValue = useMemo(() => ({ brand, ready: brandReady }), [brand, brandReady]);
+
+  return <BrandContext.Provider value={brandValue}>{children}</BrandContext.Provider>;
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useBrand } from '@/features/theming';
+import { useBrand, useBrandReady } from '@/features/theming';
 import { haptics, useBackButton, useTelegram } from '@/features/telegram';
 import { useProducts } from '@/app/catalog/useProducts';
 import { useCartStore } from '@/entities/cart/cartStore';
@@ -28,8 +28,10 @@ export function Product() {
   const { id } = useParams();
   const navigate = useNavigate();
   const brand = useBrand();
+  const brandReady = useBrandReady();
   const { nativeControls } = useTelegram();
-  const state = useProducts(brand.productsFile);
+  // Defer until the brand resolves so we fetch the active skin's products once.
+  const state = useProducts(brandReady ? brand.productsFile : null);
   const add = useCartStore((s) => s.add);
   const [qty, setQty] = useState(1);
 

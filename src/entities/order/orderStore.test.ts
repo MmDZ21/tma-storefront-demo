@@ -47,6 +47,28 @@ describe('orderStore', () => {
     expect(order.paymentMethod).toBe('ton');
     expect(order.txHash).toBe('0xabc');
   });
+
+  it('carries on-chain payment details for a TON order before confirmation', () => {
+    const order = useOrderStore.getState().placeOrder([line('a', 1.5, 2)], 'ton', null, {
+      amountNano: '3000000000',
+      boc: 'te6ccgEBAQEAAgAAAA==',
+      payerAddress: 'EQAbcdef0123456789',
+    });
+    expect(order.paymentMethod).toBe('ton');
+    // txHash stays null until the indexer confirms the transfer.
+    expect(order.txHash).toBeNull();
+    expect(order.amountNano).toBe('3000000000');
+    expect(order.boc).toBe('te6ccgEBAQEAAgAAAA==');
+    expect(order.payerAddress).toBe('EQAbcdef0123456789');
+  });
+
+  it('omits on-chain payment details for a simulated order', () => {
+    const order = useOrderStore.getState().placeOrder([line('a', 1.5, 1)]);
+    expect(order.paymentMethod).toBe('simulated');
+    expect(order.amountNano).toBeUndefined();
+    expect(order.boc).toBeUndefined();
+    expect(order.payerAddress).toBeUndefined();
+  });
 });
 
 describe('nextStatus', () => {
