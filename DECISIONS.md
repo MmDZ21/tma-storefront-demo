@@ -585,3 +585,64 @@ matching, +1 Cart path) · `vite build` clean · first-paint JS **97.8 KB gzip**
 (budget 250); TON Connect SDK isolated to a lazy **132 KB gzip** cart chunk. Real-wallet
 flow not exercised (no wallet in env) — on-device QA pending. Security review **not**
 done — gated.
+
+---
+
+## Slice 5 — security review (FIX-NOW pass) (2026-06-13)
+
+Independent adversarial review of the ton-pay code, then the signed-off FIX-NOW fixes.
+
+### Correction to the build-pass note
+
+The build-pass claim "11 npm advisories in the TON Connect tree" was **wrong**. `npm
+audit` shows **0 advisories in `@tonconnect`** (clean). The 11 are: **6 dev/build-only**
+(esbuild→vite/vitest/plugin-react — not shipped) and **5 in the Telegram SDK** (the
+`valibot` `EMOJI_REGEX` ReDoS via `@telegram-apps/*`, runtime-reachable on launch-param
+parsing; upstream-controlled). All pre-date slice 5. Details in `server-notes.md` §3.
+
+### Findings (ranked) and disposition
+
+- **F1 (HIGH) — attribution by amount+time** → equal-amount collision / riding another
+  buyer's payment confirms a non-paying order. **FIXED:** a unique per-order **comment
+  nonce** is attached to the transfer (`commentPayload` via `@ton/core`) and stored on
+  the order; `matchPaymentTx` now requires `comment === nonce` (plus amount + time).
+- **F2 (MED) — recipient unvalidated; placeholder footgun.** **FIXED:** recipient moves
+  to `VITE_TON_RECIPIENT_TESTNET` (deploy env); `isRecipientConfigured()` gates the Pay
+  button (disabled + "use Demo mode") and `pay()` throws if unset — fails loud, Demo mode
+  still works. Verified in-browser.
+- **F3 (HIGH) — indexer fully trusted/unschema'd.** **FIXED (client part):** toncenter
+  responses are **zod-validated, fail-closed** (`parseIndexerResponse`) — malformed ⇒ `[]`,
+  never a false confirm; account-scoped query removes the destination-normalisation need.
+  *Residual (HONEST-TODO):* a well-formed lying indexer can still fabricate a match →
+  needs server-side verification (`server-notes.md` §2).
+- **F4 (HIGH, inherent) — client owns all state/price.** **HONEST-TODO:** documented in
+  `server-notes.md` §2. (The on-chain amount is already authoritative — no float leak.)
+- **F5 (LOW) — cancel/reject → paid?** Confirmed **closed** by design. Hardened the two
+  LOW sub-issues: **terminal "couldn't confirm" state** + **Check again** (no eternal
+  "confirming…") via `useTonConfirmation` phase/retry; **double-submit guard** (ref) on
+  Pay.
+- **F6 (MED, accuracy)** — corrected above + `server-notes.md` §3.
+
+### New dependencies (rationale)
+
+- **`@ton/core`** — build the TON text-comment cell for the F1 nonce. Write-side only;
+  imported via `comment.ts` → `useTonPay`, so it lands in the **lazy cart chunk**, never
+  first paint. It uses the Node `Buffer` global and declares no deps, so **`buffer`** is
+  added as a browser polyfill (`buffer-polyfill.ts`, cart chunk). The BOC output is
+  deterministic — unit-tested and **verified identical in a real browser** (Playwright
+  `import()` of `comment.ts` → exact base64; `globalThis.Buffer` defined).
+
+### initData (SPEC §5)
+
+`server-notes.md` §1 now carries the Express HMAC-SHA256 validation snippet; a client
+marker comment was added at `initTelegram.ts` (where the launch params are read) stating
+the check belongs server-side and the client trusts initData for nothing.
+
+### Verification (security pass)
+
+`tsc -b` clean · `eslint .` clean · **98 tests pass** (was 89: +2 comment, +3 recipient,
++4 confirm/parse) · `vite build` clean. First-paint JS **97.7 KB gzip** (budget 250,
+unchanged — `@ton/core`/`buffer` stay in the lazy cart chunk, now **215 KB gzip**).
+In-browser: comment-payload BOC correct, recipient-unconfigured Pay button disabled with
+Demo mode working, 0 console errors. Real-wallet round-trip + the HONEST-TODO server
+controls still pending (no wallet/backend in scope).

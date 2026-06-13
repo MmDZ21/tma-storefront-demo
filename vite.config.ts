@@ -26,5 +26,10 @@ export default defineConfig({
         new URL('./src/test/tonconnect-stub.tsx', import.meta.url),
       ),
     },
+    // A configured testnet recipient so the "pay with TON" path is exercisable in tests
+    // (a valid 48-char address; deploys set the real one via this env var).
+    env: {
+      VITE_TON_RECIPIENT_TESTNET: '0QDtestRecipientForVitestAAAAAAAAAAAAAAAAAAAAAAA',
+    },
   },
 });

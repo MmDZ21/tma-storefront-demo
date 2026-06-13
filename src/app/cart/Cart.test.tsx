@@ -83,6 +83,7 @@ describe('<Cart />', () => {
     expect(order?.amountNano).toBe('4300000000'); // exact nanotons, no float
     expect(order?.boc).toBe(STUB_BOC);
     expect(order?.payerAddress).toBe(STUB_ADDRESS);
+    expect(order?.paymentNonce).toBeTruthy(); // unique per-order nonce binds confirmation (F1)
     expect(Object.keys(useCartStore.getState().lines)).toHaveLength(0);
   });
 

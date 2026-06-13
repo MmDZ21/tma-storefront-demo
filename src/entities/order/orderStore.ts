@@ -35,6 +35,9 @@ export interface PaymentDetails {
   boc?: string;
   /** Address of the wallet that paid. */
   payerAddress?: string;
+  /** Unique per-order comment nonce attached to the transfer; binds the on-chain tx to
+   *  this order so confirmation can't be mis-attributed (security review F1). */
+  paymentNonce?: string;
 }
 
 /**
@@ -57,6 +60,8 @@ export interface Order {
   boc?: string;
   /** Wallet address that paid. Set by ton-pay; absent when simulated. */
   payerAddress?: string;
+  /** Per-order comment nonce attached to the transfer (binds confirmation to this order). */
+  paymentNonce?: string;
 }
 
 interface OrderState {

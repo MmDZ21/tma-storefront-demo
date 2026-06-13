@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBrand } from '@/features/theming';
 import { haptics, useBackButton, useTelegram } from '@/features/telegram';
 import { cartTotalNano, useCartStore, type CartLine } from '@/entities/cart/cartStore';
 import { useOrderStore } from '@/entities/order/orderStore';
 import { useTonPay } from '@/features/ton-pay/useTonPay';
+import { isRecipientConfigured } from '@/features/ton-pay';
 import { nanoToTon } from '@/shared/ton';
 import { Price } from '@/shared/ui/Price';
 import { Stepper } from '@/shared/ui/Stepper';
@@ -56,7 +57,9 @@ export function Cart() {
   const clear = useCartStore((s) => s.clear);
   const placeOrder = useOrderStore((s) => s.placeOrder);
   const { connected, connect, pay } = useTonPay();
+  const tonConfigured = isRecipientConfigured();
   const [paying, setPaying] = useState(false);
+  const inFlight = useRef(false);
 
   const goBack = () => navigate(-1);
   useBackButton(goBack, nativeControls);
@@ -77,13 +80,19 @@ export function Cart() {
       connect();
       return;
     }
+    if (inFlight.current) return; // guard a double-tap before `paying` re-renders the button
+    inFlight.current = true;
     setPaying(true);
     try {
-      const result = await pay(totalNano);
+      // Unique nonce: attached to the transfer as a comment AND stored on the order, so
+      // confirmation binds to THIS order (security review F1).
+      const nonce = crypto.randomUUID();
+      const result = await pay(totalNano, nonce);
       const order = placeOrder(items, 'ton', null, {
         boc: result.boc,
         amountNano: result.amountNano,
         payerAddress: result.payerAddress,
+        paymentNonce: nonce,
       });
       finish(order.id);
     } catch (error) {
@@ -91,6 +100,7 @@ export function Cart() {
       // or use the demo path.
       haptics.notification('error');
       if (import.meta.env.DEV) console.warn('[ton-pay] payment failed:', error);
+      inFlight.current = false;
       setPaying(false);
     }
   };
@@ -101,11 +111,13 @@ export function Cart() {
     finish(order.id);
   };
 
-  const primaryText = paying
-    ? 'Confirm in your wallet…'
-    : connected
-      ? `Pay with TON · ${totalLabel}`
-      : 'Connect wallet to pay';
+  const primaryText = !tonConfigured
+    ? 'TON payment unavailable — use Demo mode'
+    : paying
+      ? 'Confirm in your wallet…'
+      : connected
+        ? `Pay with TON · ${totalLabel}`
+        : 'Connect wallet to pay';
 
   return (
     <>
@@ -163,7 +175,11 @@ export function Cart() {
             </p>
           </main>
 
-          <PrimaryButton text={primaryText} onClick={() => void payWithTon()} disabled={paying} />
+          <PrimaryButton
+            text={primaryText}
+            onClick={() => void payWithTon()}
+            disabled={paying || !tonConfigured}
+          />
         </>
       )}
     </>

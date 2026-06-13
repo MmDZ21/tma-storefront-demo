@@ -34,6 +34,14 @@ function attempt(action: () => void): void {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SECURITY — Telegram initData validation (SPEC §5). The launch params here include
+// `tgWebAppData` (initData: user id, auth_date, hash). It is attacker-spoofable and
+// CANNOT be validated in the client — only a server holding the bot token can verify
+// it via HMAC-SHA256. This app therefore trusts initData for NOTHING security-relevant
+// (no identity/authz/payment decision keys off it). When a backend is added, the check
+// belongs at the server boundary BEFORE honoring any request. See `server-notes.md`.
+// ─────────────────────────────────────────────────────────────────────────────
 function safePlatform(): string | null {
   try {
     return retrieveLaunchParams().tgWebAppPlatform;

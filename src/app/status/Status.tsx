@@ -7,7 +7,7 @@ import {
   useOrderStore,
   type OrderStatus,
 } from '@/entities/order/orderStore';
-import { useTonConfirmation, explorerTxUrl } from '@/features/ton-pay';
+import { useTonConfirmation, explorerTxUrl, explorerAccountUrl } from '@/features/ton-pay';
 import { Price } from '@/shared/ui/Price';
 
 const STEPS: { key: OrderStatus; label: string; desc: string }[] = [
@@ -45,9 +45,12 @@ export function Status() {
 
   // Real flow drives the 'paid' step for TON orders (SPEC §3.5): watch testnet for the
   // matching incoming payment, then record its tx hash and advance to 'paid'.
-  useTonConfirmation(awaitingTon ? (order ?? null) : null, (txHash) => {
-    if (orderId) confirmPayment(orderId, txHash);
-  });
+  const { phase: confirmPhase, retry: retryConfirm } = useTonConfirmation(
+    awaitingTon ? (order ?? null) : null,
+    (txHash) => {
+      if (orderId) confirmPayment(orderId, txHash);
+    },
+  );
 
   // Mocked timeline: advance every step on a timer, except a TON order awaiting its
   // real on-chain confirmation.
@@ -83,8 +86,34 @@ export function Status() {
         {HEADINGS[order.status]}
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">Order #{order.id.slice(0, 8)}</p>
-      {awaitingTon && (
+      {awaitingTon && confirmPhase === 'watching' && (
         <p className="mt-2 text-sm text-muted-foreground">Confirming payment on TON testnet…</p>
+      )}
+      {awaitingTon && confirmPhase === 'unconfirmed' && (
+        <div className="mt-2 text-sm">
+          <p className="text-muted-foreground">
+            We couldn’t confirm your payment yet — it may still be on its way.
+          </p>
+          <div className="mt-1 flex items-center gap-4">
+            {order.payerAddress && (
+              <a
+                href={explorerAccountUrl(order.payerAddress)}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-primary underline underline-offset-2"
+              >
+                View on testnet explorer ↗
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={retryConfirm}
+              className="font-medium text-primary underline underline-offset-2"
+            >
+              Check again
+            </button>
+          </div>
+        </div>
       )}
       {order.txHash && (
         <a
