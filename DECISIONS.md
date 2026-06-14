@@ -646,3 +646,67 @@ unchanged — `@ton/core`/`buffer` stay in the lazy cart chunk, now **215 KB gzi
 In-browser: comment-payload BOC correct, recipient-unconfigured Pay button disabled with
 Demo mode working, 0 console errors. Real-wallet round-trip + the HONEST-TODO server
 controls still pending (no wallet/backend in scope).
+
+---
+
+## Slice 8 — Telegram bot + deferred deep-link wiring (2026-06-14)
+
+### The bot (`bot/index.ts`) — a pure launcher
+
+- **grammY** (Node 20), one small file (SPEC §6/§8). `/start` → an inline keyboard with a
+  **`web_app` button** that opens the Mini App; also sets the persistent chat **menu
+  button** to launch it. Runs via **long-polling** (`bot.start()`) — no public HTTP
+  endpoint.
+- **No authenticated endpoint, no `initData` consumption, no payment/on-chain logic.**
+  Per the payments HONEST-TODO: because the bot is a pure launcher with no endpoint, it
+  needs **no `initData` validation here**. The check belongs at the server boundary if a
+  backend is ever added — documented in `server-notes.md` §1 (and the client marker in
+  `initTelegram.ts`). The on-chain trust boundary stays in `server-notes.md` §2; **no
+  payment logic was added to the bot.**
+- Config via env, never committed: `BOT_TOKEN`, `WEB_APP_URL` (see `.env.example`;
+  `.env*` is gitignored). Run with `npm run bot` (tsx); deploy with pm2 on the VPS (SPEC
+  §8) — pm2 config is deploy-specific, kept out of git (repo-hygiene).
+
+### HashRouter ↔ `startapp` deep links (the deferred blocking item)
+
+- **Implemented the agreed fix** in `main.tsx`: after `initTelegram()` (which calls
+  `retrieveLaunchParams()` and **caches launch params to `sessionStorage`** — verified in
+  the SDK source: `@telegram-apps/bridge` reads URL → `window.name` → `getStorageValue
+  ('launchParams')` and writes back on each success), we read `tgWebAppStartParam`, map it
+  to a route, and `history.replaceState` the hash **before** mounting `<HashRouter>`.
+  Clearing the Telegram-params hash is therefore safe — later SDK reads come from
+  sessionStorage.
+- **Refresh-safe:** the rewrite only happens when the current hash is **not** already a
+  route (`resolveInitialHash` returns `null` for a `#/…` hash), so a normal reload / in-app
+  navigation keeps its route.
+- **Pure + tested:** `startParamToRoute` (payload → route) and `resolveInitialHash`
+  (`src/app/startParam.ts`) are pure and unit-tested. Payload convention (Telegram allows
+  `[A-Za-z0-9_-]`): `product_<id>` → `/product/<id>`, `cart` → `/cart`, anything else → `/`.
+- **Verified in-browser:** loading directly at `#/product/…` is left intact (refresh-safe),
+  the route renders, and the shipped mapping integrates. **NOT self-certified:** the real
+  Telegram deep-link round-trip (a client opening `t.me/<bot>/<app>?startapp=…` so the SDK
+  populates `tgWebAppStartParam` from the URL hash) needs **on-device QA via the :10808
+  proxy** — the dev mock injects launch params via the SDK store, not the URL, so it can't
+  reproduce that leg.
+
+### `APP.botUrl` → env (the second deferred item)
+
+- `src/config/app.ts` now reads `import.meta.env.VITE_BOT_URL` (placeholder fallback), set
+  per-deploy. The outside-Telegram fallback (slice 7) consumes it unchanged — its test
+  compares against the imported `APP.botUrl`, so it stays green.
+
+### New dependencies (rationale)
+
+- **`grammy`** (dep) — the bot framework (SPEC §6 names grammY). Imported only by `bot/`,
+  so it is **not in the app bundle** (build confirms first paint unchanged, no grammy
+  chunk). **`tsx`** (devDep) — runs the strict-TS bot file on Node 20 (`npm run bot`).
+- `bot/` is typechecked via `tsconfig.node.json` (`include: ["vite.config.ts", "bot"]`);
+  `eslint` already had a `bot/**/*.ts` node-globals override.
+
+### Verification (slice 8)
+
+`tsc -b` clean (app + node + bot) · `eslint .` clean · **104 tests pass** (was 98: +6
+startapp mapping) · `vite build` clean. First-paint JS **97.8 KB gzip** (budget 250);
+grammY not bundled. In-browser: clean load, refresh-safety, and startapp→route mapping
+verified; 0 console errors. **On-device QA pending** (real deep-link round-trip; bot
+`/start` + menu button on a real client) — not self-certified, needs the :10808 proxy.

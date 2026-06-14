@@ -21,6 +21,8 @@ export interface TelegramInitResult {
   inTelegram: boolean;
   /** 'tdesktop' | 'ios' | 'android' | … when known. */
   platform: string | null;
+  /** `tgWebAppStartParam` from a `t.me/<bot>/<app>?startapp=…` deep link (slice 8), or null. */
+  startParam: string | null;
 }
 
 /** Run an SDK step, swallowing unsupported-method errors (dev-logged only). */
@@ -50,11 +52,19 @@ function safePlatform(): string | null {
   }
 }
 
+function safeStartParam(): string | null {
+  try {
+    return retrieveLaunchParams().tgWebAppStartParam ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function initTelegram(): TelegramInitResult {
   // Outside Telegram, do nothing: the semantic-token fallbacks in index.css keep
   // the UI styled, and the fallback page (slice 7) explains where the app lives.
   if (!isTMA()) {
-    return { inTelegram: false, platform: null };
+    return { inTelegram: false, platform: null, startParam: null };
   }
 
   try {
@@ -86,13 +96,13 @@ export function initTelegram(): TelegramInitResult {
         });
     });
 
-    return { inTelegram: true, platform: safePlatform() };
+    return { inTelegram: true, platform: safePlatform(), startParam: safeStartParam() };
   } catch (error) {
     // A hard SDK failure must never blank the app — fall back to token theming.
     if (import.meta.env.DEV) {
       console.warn('[telegram] init failed, using fallback theming:', error);
     }
-    return { inTelegram: false, platform: null };
+    return { inTelegram: false, platform: null, startParam: null };
   }
 }
 

@@ -7,4 +7,6 @@ interface ImportMetaEnv {
    * rejects, so the Pay button is disabled rather than sending to a junk address.
    */
   readonly VITE_TON_RECIPIENT_TESTNET?: string;
+  /** Telegram bot / Mini App deep link for the outside-Telegram fallback (QR + button). */
+  readonly VITE_BOT_URL?: string;
 }

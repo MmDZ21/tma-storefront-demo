@@ -5,6 +5,7 @@ import './index.css';
 import { initTelegram, ThemeProvider } from '@/features/theming';
 import { TelegramProvider } from '@/features/telegram';
 import { App } from '@/app/App';
+import { resolveInitialHash } from '@/app/startParam';
 
 // Lazy so the QR dependency lands in its own chunk, fetched only outside Telegram.
 const OutsideTelegram = lazy(() =>
@@ -23,12 +24,29 @@ async function bootstrap(): Promise<void> {
   const env = initTelegram();
   // Native Telegram chrome only exists in a real client; under the dev mock we
   // have Telegram data but must render in-app controls (the mock paints no UI).
-  const telegramEnv = { ...env, nativeControls: env.inTelegram && !import.meta.env.DEV };
+  const telegramEnv = {
+    inTelegram: env.inTelegram,
+    platform: env.platform,
+    nativeControls: env.inTelegram && !import.meta.env.DEV,
+  };
 
   // Outside Telegram → the §3.9 fallback. In dev, `?fallback` previews it.
   const previewFallback =
     import.meta.env.DEV && new URLSearchParams(window.location.search).has('fallback');
   const showFallback = !telegramEnv.inTelegram || previewFallback;
+
+  // Telegram delivers launch data in the URL hash (#tgWebAppData=…&tgWebAppStartParam=…),
+  // which HashRouter would otherwise read as a route. Before mounting the router, replace
+  // that hash with the route from the startapp deep link (slice 8). initTelegram() has
+  // already cached the launch params in sessionStorage, so clearing the hash is safe; an
+  // existing route hash (normal reload / in-app navigation) is left untouched. The real
+  // deep-link round-trip needs on-device QA via the :10808 proxy.
+  if (!showFallback) {
+    const initialHash = resolveInitialHash(window.location.hash, env.startParam);
+    if (initialHash !== null) {
+      window.history.replaceState(null, '', `#${initialHash}`);
+    }
+  }
 
   const rootEl = document.getElementById('root');
   if (!rootEl) {
@@ -44,21 +62,8 @@ async function bootstrap(): Promise<void> {
               <OutsideTelegram />
             </Suspense>
           ) : (
-            /*
-             * TODO(slice 8 — BLOCKING, needs on-device QA via the :10808 proxy):
-             * Telegram delivers launch data in the URL *hash*
-             * (#tgWebAppData=…&tgWebAppStartParam=PAYLOAD). HashRouter also owns the
-             * hash, so on a real-client deep link (t.me/<bot>/<app>?startapp=PAYLOAD)
-             * the initial hash is the Telegram params — not a route — and HashRouter
-             * matches nothing while the startapp payload is dropped. The dev mock
-             * injects launch params via the SDK store (not the URL), which is why
-             * local/jsdom never reproduces this. Agreed fix (do NOT implement before
-             * slice 8): after initTelegram() caches launch params to sessionStorage,
-             * read retrieveLaunchParams().tgWebAppStartParam, map it to a route, and
-             * set window.location.hash to that route BEFORE mounting <HashRouter>.
-             * Keep HashRouter (refresh-safe on static hosting). See DECISIONS.md →
-             * "Pre-ton-pay prep" (blocking TODO for slice 8).
-             */
+            // The hash was normalised to a route above (startapp deep link → route),
+            // so HashRouter starts on a valid path rather than the Telegram launch params.
             <HashRouter>
               <App />
             </HashRouter>
