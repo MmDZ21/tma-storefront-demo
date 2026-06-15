@@ -444,7 +444,7 @@ Three prep tasks accepted from the consolidated diff review, **before** ton-pay
   injects launch params via the SDK store, not the URL hash**, so local/jsdom never
   reproduces it. It is **not broken yet** only because nothing consumes
   `tgWebAppStartParam` until slice 8.
-- **Agreed fix (deferred to slice 8 + on-device QA via the `:10808` proxy — NOT
+- **Agreed fix (deferred to slice 8 + on-device QA via a proxy/tunnel — NOT
   implemented now):** keep `HashRouter` (refresh-safe on static hosting); in
   `main.tsx`, after `initTelegram()` caches launch params to `sessionStorage`, read
   `retrieveLaunchParams().tgWebAppStartParam`, map it to a route, and set
@@ -567,8 +567,8 @@ security-sensitive pieces below are flagged, not certified.
    flow; manifest must be HTTPS.
 5. **initData is still not server-validated** (SPEC §5 wants `/server-notes.md` with the
    HMAC snippet) — separate from payments, not in this slice.
-6. Real-wallet path is **typechecked + stub-tested only**; needs on-device QA via the
-   `:10808` proxy (no wallet in this env).
+6. Real-wallet path is **typechecked + stub-tested only**; needs on-device QA via a
+   proxy/tunnel (no wallet in this env).
 
 ### Visual QA
 
@@ -685,8 +685,8 @@ controls still pending (no wallet/backend in scope).
 - **Verified in-browser:** loading directly at `#/product/…` is left intact (refresh-safe),
   the route renders, and the shipped mapping integrates. **NOT self-certified:** the real
   Telegram deep-link round-trip (a client opening `t.me/<bot>/<app>?startapp=…` so the SDK
-  populates `tgWebAppStartParam` from the URL hash) needs **on-device QA via the :10808
-  proxy** — the dev mock injects launch params via the SDK store, not the URL, so it can't
+  populates `tgWebAppStartParam` from the URL hash) needs **on-device QA via a proxy/tunnel**
+  — the dev mock injects launch params via the SDK store, not the URL, so it can't
   reproduce that leg.
 
 ### `APP.botUrl` → env (the second deferred item)
@@ -709,4 +709,4 @@ controls still pending (no wallet/backend in scope).
 startapp mapping) · `vite build` clean. First-paint JS **97.8 KB gzip** (budget 250);
 grammY not bundled. In-browser: clean load, refresh-safety, and startapp→route mapping
 verified; 0 console errors. **On-device QA pending** (real deep-link round-trip; bot
-`/start` + menu button on a real client) — not self-certified, needs the :10808 proxy.
+`/start` + menu button on a real client) — not self-certified, needs a real device (proxy/tunnel).

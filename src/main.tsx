@@ -40,7 +40,7 @@ async function bootstrap(): Promise<void> {
   // that hash with the route from the startapp deep link (slice 8). initTelegram() has
   // already cached the launch params in sessionStorage, so clearing the hash is safe; an
   // existing route hash (normal reload / in-app navigation) is left untouched. The real
-  // deep-link round-trip needs on-device QA via the :10808 proxy.
+  // deep-link round-trip needs on-device QA on a real client (via a proxy/tunnel).
   if (!showFallback) {
     const initialHash = resolveInitialHash(window.location.hash, env.startParam);
     if (initialHash !== null) {
