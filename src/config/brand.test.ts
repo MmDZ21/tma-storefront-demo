@@ -76,7 +76,10 @@ describe('loadBrand', () => {
   });
 
   it('throws on a non-OK response', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('error', { status: 500 })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('error', { status: 500 })),
+    );
     await expect(loadBrand()).rejects.toThrow();
   });
 });

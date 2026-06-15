@@ -16,7 +16,14 @@ const brand = {
 };
 
 function line(id: string, name: string, priceTon: number, qty: number) {
-  const product: Product = { id, name, description: 'd', priceTon, image: `/img/${id}.svg`, category: 'C' };
+  const product: Product = {
+    id,
+    name,
+    description: 'd',
+    priceTon,
+    image: `/img/${id}.svg`,
+    category: 'C',
+  };
   return { product, qty };
 }
 

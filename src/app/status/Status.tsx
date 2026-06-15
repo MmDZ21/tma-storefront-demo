@@ -149,7 +149,9 @@ export function Status() {
                 aria-hidden
                 className={[
                   'relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-semibold transition-colors duration-500',
-                  done || active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+                  done || active
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground',
                 ].join(' ')}
               >
                 {done ? (

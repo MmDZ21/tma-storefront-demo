@@ -58,7 +58,10 @@ export function Catalog() {
                     to={`/product/${product.id}`}
                     className="block rounded-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
-                    <ProductCard product={product} style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }} />
+                    <ProductCard
+                      product={product}
+                      style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
+                    />
                   </Link>
                 </li>
               ))}

@@ -42,7 +42,9 @@ describe('<Product />', () => {
   it('shows product details for the routed id', async () => {
     renderWithProviders(<App />, { route: '/product/ethiopia-light' });
 
-    expect(await screen.findByRole('heading', { name: 'Ethiopia Yirgacheffe' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Ethiopia Yirgacheffe' }),
+    ).toBeInTheDocument();
     expect(
       screen.getByText('Bright and floral, with notes of citrus and jasmine.'),
     ).toBeInTheDocument();

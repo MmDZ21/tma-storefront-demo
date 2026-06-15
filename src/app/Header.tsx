@@ -34,7 +34,10 @@ export function Header() {
           className="relative"
           aria-label={`Cart: ${count} item${count === 1 ? '' : 's'}`}
         >
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-muted text-lg" aria-hidden>
+          <span
+            className="grid h-9 w-9 place-items-center rounded-full bg-muted text-lg"
+            aria-hidden
+          >
             🛍️
           </span>
           {count > 0 && (

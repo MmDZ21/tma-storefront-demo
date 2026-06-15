@@ -14,10 +14,7 @@ export function buildBrandThemeVars(brand: Brand): Record<string, string> {
 }
 
 /** Write the brand variables onto an element (defaults to the document root). */
-export function applyBrandTheme(
-  brand: Brand,
-  root: HTMLElement = document.documentElement,
-): void {
+export function applyBrandTheme(brand: Brand, root: HTMLElement = document.documentElement): void {
   for (const [name, value] of Object.entries(buildBrandThemeVars(brand))) {
     root.style.setProperty(name, value);
   }

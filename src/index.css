@@ -36,10 +36,7 @@
   /* Accent — brand first, then Telegram's button color, then a TON-blue
      default. `--brand-accent*` are set by the theming feature at runtime. */
   --primary: var(--brand-accent, var(--tg-theme-button-color, #0098ea));
-  --primary-foreground: var(
-    --brand-accent-foreground,
-    var(--tg-theme-button-text-color, #ffffff)
-  );
+  --primary-foreground: var(--brand-accent-foreground, var(--tg-theme-button-text-color, #ffffff));
 }
 
 /* Expose the semantic tokens to Tailwind utilities (bg-background, text-foreground,
