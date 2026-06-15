@@ -32,7 +32,9 @@ export function ProductCard({ product, style }: ProductCardProps) {
           {product.name}
         </h3>
         <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{product.category}</p>
-        <Price priceTon={product.priceTon} className="mt-2 text-sm" />
+        {/* mt-auto pins the price to the bottom so prices align across a row regardless of
+            how many lines the title wraps to (cards are equal-height via the grid). */}
+        <Price priceTon={product.priceTon} className="mt-auto pt-2 text-sm" />
       </div>
     </article>
   );

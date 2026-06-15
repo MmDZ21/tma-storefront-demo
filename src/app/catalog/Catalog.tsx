@@ -56,7 +56,7 @@ export function Catalog() {
                 <li key={product.id}>
                   <Link
                     to={`/product/${product.id}`}
-                    className="block rounded-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    className="block h-full rounded-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     <ProductCard
                       product={product}
