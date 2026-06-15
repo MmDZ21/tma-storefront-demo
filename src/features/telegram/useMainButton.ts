@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { mainButton } from '@telegram-apps/sdk-react';
 
 export interface MainButtonConfig {
@@ -25,8 +25,10 @@ function devWarn(message: string, error: unknown): void {
 export function useMainButton(config: MainButtonConfig): void {
   const { text, onClick, enabled = true, active = true, backgroundColor, textColor } = config;
 
-  // Mount while active; hide on cleanup.
-  useEffect(() => {
+  // Mount while active; hide on cleanup. Layout-timed so the native button is mounted
+  // (and labeled, below) synchronously with the commit, before paint — a passive effect
+  // pushed the label a frame late, so it lagged the quantity by one render on-device (BUG 2).
+  useLayoutEffect(() => {
     if (!active) return;
     try {
       mainButton.mount();
@@ -43,8 +45,9 @@ export function useMainButton(config: MainButtonConfig): void {
     };
   }, [active]);
 
-  // Reflect label, state, and brand colors.
-  useEffect(() => {
+  // Reflect label, state, and brand colors — layout-timed (see above) so the text stays in
+  // sync with the committed quantity instead of lagging a render.
+  useLayoutEffect(() => {
     if (!active) return;
     try {
       mainButton.setParams({

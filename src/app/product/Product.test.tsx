@@ -60,4 +60,21 @@ describe('<Product />', () => {
     const line = useCartStore.getState().lines['ethiopia-light'];
     expect(line?.qty).toBe(2);
   });
+
+  it('keeps the Add-to-cart button label in sync with quantity × price (BUG 2 guard)', async () => {
+    renderWithProviders(<App />, { route: '/product/ethiopia-light' });
+    await screen.findByRole('heading', { name: 'Ethiopia Yirgacheffe' });
+
+    // price 1.5 TON — the button label must always reflect the CURRENT quantity, not lag it.
+    expect(screen.getByRole('button', { name: /add to cart.*1\.5 TON/i })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /increase quantity/i }));
+    expect(screen.getByRole('button', { name: /add to cart.*3 TON/i })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /increase quantity/i }));
+    expect(screen.getByRole('button', { name: /add to cart.*4\.5 TON/i })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /decrease quantity/i }));
+    expect(screen.getByRole('button', { name: /add to cart.*3 TON/i })).toBeInTheDocument();
+  });
 });
