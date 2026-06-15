@@ -7,9 +7,9 @@ wallet, a deploy target, or an explicit decision.
 
 ## 1. On-device / real-wallet QA (needs Tonkeeper testnet + a proxy/tunnel)
 
-- [ ] **TON payment round-trip** — connect Tonkeeper (testnet) → pay the cart total → the
-      order confirms from the real on-chain transfer (comment-nonce match). Verify the
-      "couldn't confirm / Check again" terminal state too.
+- [x] **TON payment round-trip** — ✅ **DONE** (on-device, inside Telegram). Both paths
+      verified: happy path (Tonkeeper testnet → comment-nonce match → reached **delivered**)
+      AND the indexer-slow fallback ("couldn't confirm / Check again" → verified on the explorer).
 - [ ] **Bot** — `/start` shows the launch button; the chat menu button opens the app
       (needs a real `BOT_TOKEN`).
 - [ ] **Deep-link round-trip** — `t.me/<bot>/<app>?startapp=product_<id>` opens the app on
@@ -52,6 +52,11 @@ These are inherent to a client-only demo and **cannot** be closed client-side:
       (`server-notes.md` §3)
 - [ ] **Indexer trust** — the public toncenter endpoint is unkeyed; a real deployment should
       use a keyed/owned node for confirmations. (`server-notes.md` §2)
+  - ⚠️ **PRE-VIDEO STEP (not the full key/backend work):** before recording the §8 demo video,
+        switch the toncenter confirmation to a **keyed endpoint** so the public rate-limit can't
+        leave a real payment stuck on "Confirming…". On-device QA already hit this (the fallback
+        path), so the video's payment-success moment needs the keyed endpoint to be reliable.
+        Not implemented now — flagged as required before the §2 video shoot.
 
 ## 5. Git identity — corrupted authorship (publish-blocker)
 
