@@ -10,11 +10,13 @@ wallet, a deploy target, or an explicit decision.
 - [x] **TON payment round-trip** — ✅ **DONE** (on-device, inside Telegram). Both paths
       verified: happy path (Tonkeeper testnet → comment-nonce match → reached **delivered**)
       AND the indexer-slow fallback ("couldn't confirm / Check again" → verified on the explorer).
-- [ ] **Bot** — `/start` shows the launch button; the chat menu button opens the app
-      (needs a real `BOT_TOKEN`).
-- [ ] **Deep-link round-trip** — `t.me/<bot>/<app>?startapp=product_<id>` opens the app on
-      that product (the SDK populates `tgWebAppStartParam` from the URL hash; the dev mock
-      can't reproduce this leg). Confirm refresh-safety on a real client.
+- [ ] **Bot** — chat **menu button** + named **Mini App** (`/newapp`) launch the app on-device
+      ✅; `/start` via the running bot process (`npm run bot`, real `BOT_TOKEN`) still to verify.
+- [x] **Deep-link round-trip** — ✅ **DONE** (real client, `@tma_demo_bot/store` via BotFather
+      `/newapp`): `?startapp=product_<id>` → that product, plain launch → catalog,
+      `?startapp=cart` → cart all route correctly (`tgWebAppStartParam` → `resolveInitialHash`
+      → route, before HashRouter mounts). Reload/refresh-safety: confirm with one reload if not
+      already done.
 - [ ] Test on **iOS, Android, and Desktop** Telegram (SPEC §7).
 
 ## 2. Media — capture after QA (SPEC §8 shot list). Do NOT fabricate.
