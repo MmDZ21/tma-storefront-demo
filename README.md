@@ -3,27 +3,45 @@
 [![CI](https://github.com/MmDZ21/tma-storefront-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/MmDZ21/tma-storefront-demo/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-informational.svg)](./LICENSE)
 
-A polished **Telegram Mini App (TMA) storefront** with **TON (testnet) payments** —
-built as a portfolio piece and a re-skinnable demo template. Native Telegram feel,
-automatic dark/light theming, and a one-file personalization layer.
+A polished **Telegram Mini App storefront** with **TON (testnet) payments** — a portfolio
+piece and a **re-skinnable demo template**. Native Telegram feel, automatic dark/light
+theming from the client, a full purchase funnel, and a one-file personalization layer.
 
-> **⚠️ DRAFT** — this README is a working draft. The hero GIF, screenshots, live
-> links, and demo video land with the polish/README slice. Everything in the
-> _Architecture_, _Personalization_, and _Getting started_ sections is current.
+> **Status — feature-complete client, pre-launch.** Every screen in the funnel is built,
+> typechecked, and tested (104 tests). What remains before the repo goes public is tracked
+> in [`PUBLISH-CHECKLIST.md`](./PUBLISH-CHECKLIST.md): on-device wallet QA, the media below,
+> a live deploy, and the documented server-side hardening (see _Security & trust boundary_).
 
-> **Build status:** vertical slices. **Done:** scaffold + theming · catalog ·
-> product · cart & checkout · order status · outside-Telegram fallback.
-> **Pending:** TON payment (testnet) · bot wrapper · polish · final README.
+## Demo
 
-## Highlights
+<!-- PLACEHOLDER — captured after on-device QA; do not embed fabricated media. -->
 
-- **Native Telegram UX** — theme, viewport, haptics, and the MainButton/BackButton
-  via [`@telegram-apps/sdk-react`](https://docs.telegram-mini-apps.com), with
-  in-app equivalents so the funnel works in any browser too.
-- **Automatic theming** — every color flows from Telegram's `themeParams` into a
-  semantic token layer; dark/light switches live, mid-session. Zero hardcoded color.
-- **Full funnel** — catalog → product → cart → checkout → animated order status.
-- **Re-skin in ~20 minutes** — all branding lives in one validated JSON file.
+> 🎬 **Hero GIF · 3 screenshots · 90-second walkthrough** land here after on-device QA
+> (shot list in [`PUBLISH-CHECKLIST.md`](./PUBLISH-CHECKLIST.md)).
+
+> 🔗 **Live app (Cloudflare Pages) + bot link** go here after deploy.
+
+## Features
+
+- **Full funnel** — catalog → product → cart → checkout → **animated** placed → paid →
+  delivered order status.
+- **Real TON payments (testnet)** via TON Connect: connect wallet → send the cart total to
+  the demo address, tagged with a per-order comment nonce; the order confirms when the
+  testnet indexer sees the matching transfer. _Mainnet / fiat / Telegram Stars are out of
+  scope by design._
+- **No-wallet path** — a visible "Demo mode: simulate payment" button so a viewer without a
+  wallet still completes the funnel. The demo never dead-ends.
+- **Native Telegram UX** — theme, viewport, haptics, and the MainButton/BackButton via
+  [`@telegram-apps/sdk-react`](https://docs.telegram-mini-apps.com), with in-app
+  equivalents so the funnel also works in any browser.
+- **Automatic theming** — every color flows from Telegram's `themeParams` into a semantic
+  token layer; dark/light switches live, mid-session. Zero hardcoded color.
+- **Re-skin in ~20 minutes** — all branding lives in one validated JSON file
+  ([`PERSONALIZE.md`](./docs/PERSONALIZE.md)).
+- **Outside-Telegram fallback** — opened in a normal browser, a slim branded page with a QR
+  code + deep link to the bot.
+- **Bot launcher** — a minimal grammY bot whose only job is to open the Mini App
+  (`/start` → web_app button + chat menu button).
 
 ## Architecture
 
@@ -31,28 +49,73 @@ automatic dark/light theming, and a one-file personalization layer.
         Telegram client (themeParams · viewport · launch data · native buttons · haptics)
                                    │
                                    ▼
-   features/theming + features/telegram   ← the only layers that touch the SDK
-     • themeParams.bindCssVars() → --tg-theme-* → semantic tokens (with fallbacks)
+   features/theming + features/telegram   ← the only layers that touch the Telegram SDK
+     • themeParams.bindCssVars() → --tg-theme-* → semantic tokens (with browser fallbacks)
      • brand.json (zod-validated) → --brand-* CSS variables
      • { inTelegram, nativeControls } context → native vs in-app controls
                                    │
                                    ▼
-            app/ routes  (HashRouter: Catalog · Product · Cart · Status · Fallback)
-              • shared/ui  — Button-like CTAs, Price, Skeleton, Stepper
-              • entities/  — cart + order stores (Zustand)
+       app/ routes  (HashRouter: Catalog · Product · Cart · Status · outside-TG Fallback)
+         • startapp deep link → route, normalised before the router mounts
+         • shared/ui — CTAs, Price, Skeleton, Stepper      • entities/ — cart + order (Zustand)
+         • features/ton-pay — TON Connect adapter (lazy-loaded at the cart route)
                                    │
                                    ▼
             public/config/*.json   ← brand + products = the personalization layer
+
+   bot/index.ts  (grammY, separate Node process) — launches the Mini App; not in the web bundle
 ```
 
-Design notes and every judgment call are logged in [`DECISIONS.md`](./DECISIONS.md).
+The TON Connect SDK is **code-split into the cart chunk**, so catalog/product first paint
+stays light (~98 KB gzip; budget 250). Design notes and every judgment call are logged in
+[`DECISIONS.md`](./DECISIONS.md).
 
-## Personalization (the killer feature)
+## Tech stack — and why
 
-All branding lives in [`public/config/brand.json`](./public/config/brand.json):
-shop name, logo (image **or** emoji), accent color, currency, and the product list
-pointer. Swap that one file to re-skin the whole app — logo, colors, products. Two
-example skins ship in [`public/config/`](./public/config):
+- **Vite 6 + React 18 + TypeScript (strict, zero `any`)** — fast HMR, first-class TS, and
+  easy route-level code-splitting (used to keep TON Connect and the QR lib off first paint).
+- **`@telegram-apps/sdk-react`** — the Mini Apps SDK: theme params, viewport, haptics, and
+  the native Main/Back buttons. Kept behind two feature folders so screens never touch it raw.
+- **`@tonconnect/ui-react`** (+ `@ton/core`) — the standard TON wallet-connection protocol;
+  `@ton/core` builds the per-order payment comment. **Testnet only.**
+- **Tailwind CSS v4 (CSS-first)** — design tokens bind directly to Telegram's theme CSS
+  variables, so theming is automatic and there's zero hardcoded color.
+- **Zustand** (cart/order) — minimal client state without a backend or boilerplate.
+- **Zod** — validates the personalization JSON (`brand.json`/products) at the boundary, so a
+  bad re-skin fails loudly instead of rendering broken.
+- **HashRouter** — server-less static hosting (Cloudflare Pages) and refresh-safe, with a
+  bootstrap that maps a Telegram `startapp` deep link to a route before the router mounts.
+- **Vitest + Testing Library**, **ESLint 9 + Prettier**, **grammY** (bot).
+
+## Getting started
+
+```bash
+npm install
+npm run dev        # dev server; renders a mocked Telegram (dark) env in any browser
+npm run build      # production build (tsc -b && vite build)
+npm run test       # unit + integration tests (Vitest)
+npm run lint       # ESLint
+npm run typecheck  # tsc -b
+npm run format     # Prettier write  (format:check verifies)
+```
+
+Dev tips: append `?fallback` to preview the outside-Telegram page; the in-app CTA stands in
+for Telegram's native MainButton outside a real client.
+
+**Real TON testnet payments (optional, for on-device QA).** Copy `.env.example` → `.env`
+and set `VITE_TON_RECIPIENT_TESTNET` to a testnet address; an unconfigured build keeps the
+Pay button disabled (Demo mode still works), so it fails loud rather than sending to a junk
+address.
+
+**Bot (optional).** Set `BOT_TOKEN` + `WEB_APP_URL` in `.env`, then `npm run bot` (runs the
+launcher via long-polling).
+
+## Personalize in ~20 minutes
+
+All branding lives in [`public/config/brand.json`](./public/config/brand.json): shop name,
+logo (image **or** emoji), accent color, currency, and the product-file pointer. Swap that
+one file to re-skin the whole app. Two example skins ship in
+[`public/config/`](./public/config):
 
 | Skin | Logo | Accent |
 | --- | --- | --- |
@@ -64,35 +127,29 @@ example skins ship in [`public/config/`](./public/config):
 cp public/config/brand.sneakers.json public/config/brand.json
 ```
 
-Product imagery is generated locally as license-free flat-SVG illustrations
-(`npm run gen:images`) — no external image dependencies.
+Product imagery ships as license-free flat-SVG illustrations (`npm run gen:images`) — and
+swapping in **real photos is zero-code**: drop files into `/public` and point the product
+`image` paths at them. Full checklist: **[`docs/PERSONALIZE.md`](./docs/PERSONALIZE.md)**.
 
-## Tech stack
+## Security & trust boundary
 
-- **Vite 6** + **React 18** + **TypeScript** (strict, zero `any`)
-- **Tailwind CSS v4** (CSS-first, bound to Telegram theme variables)
-- **Zustand** (cart/order) · **Zod** (config validation) · **react-router** (HashRouter)
-- **qrcode.react** (fallback QR, lazy-loaded) · **TON Connect** (payments — upcoming)
-- **Vitest** + **Testing Library** · **ESLint 9** + **Prettier**
+This is a **client-only** demo (a backend is explicitly out of scope). It is honest about
+what that means — full detail in [`server-notes.md`](./server-notes.md):
 
-## Getting started
-
-```bash
-npm install
-npm run dev        # dev server; renders a mocked Telegram (dark) env in any browser
-npm run build      # production build
-npm run test       # unit + integration tests
-npm run lint       # ESLint
-npm run typecheck  # tsc
-```
-
-Dev tips: append `?fallback` to preview the outside-Telegram page; the in-app CTA
-stands in for Telegram's native MainButton outside a real client.
+- **Payments are TESTNET only.** The on-chain amount is computed in exact nanotons (no float
+  math on money), and each transfer carries a unique per-order comment nonce.
+- **Confirmation is client-side and advisory.** The app polls a public testnet indexer
+  (schema-validated, fail-closed). For **real money**, a backend must own the order + price
+  and verify the on-chain receipt against a trusted node — the client cannot be the source
+  of truth.
+- **Telegram `initData` is not trusted.** It can't be validated in the browser; the app keys
+  no security decision off it. `server-notes.md` §1 carries the server-side HMAC-SHA256
+  validation snippet, and the client marks where the check belongs.
 
 ## Browser support
 
-Targets **Tailwind CSS v4**, which relies on modern CSS (cascade layers,
-`@property`, `color-mix()`):
+Targets **Tailwind CSS v4**, which relies on modern CSS (cascade layers, `@property`,
+`color-mix()`):
 
 > **Safari 16.4+ · Chrome/Edge 111+ · Firefox 128+**
 
@@ -102,23 +159,18 @@ An accepted tradeoff — the Telegram in-app WebView comfortably exceeds this fl
 
 ```
 src/
-  app/         # screens: catalog/ product/ cart/ status/ fallback/ + Header
+  app/         # screens: catalog/ product/ cart/ status/ fallback/ + Header + startParam
   shared/ui/   # Price, Skeleton, Stepper, PrimaryButton
-  shared/      # formatting helpers
+  shared/      # formatting + nanoton money helpers
   entities/    # cart + order stores (Zustand)
-  features/    # theming/ (brand + tokens) · telegram/ (native controls)
+  features/    # theming/ · telegram/ (native controls) · ton-pay/ (TON Connect adapter)
   config/      # zod-validated brand + products loaders, app config
 public/config/ # brand.json (+ example skins) and product data
 public/img/    # generated product illustrations
+bot/           # grammY launcher (separate Node process)
+docs/          # PERSONALIZE.md
 scripts/       # build-time asset generators
 ```
-
-## Demo
-
-<!-- DRAFT: hero GIF, 3 screenshots, 90-second demo video, and live links
-     (Cloudflare Pages app + bot) land with the polish/README slice. -->
-
-_Coming with the polish slice._
 
 ## License
 
