@@ -47,6 +47,14 @@ export function manifestUrl(): string {
 /** Public testnet indexer (toncenter v3) used to confirm the incoming payment. */
 export const TON_INDEXER_BASE = 'https://testnet.toncenter.com/api/v3';
 
+/**
+ * Optional toncenter API key — raises the rate limit so confirmation is reliable for the
+ * demo (no "Confirming…" stalls). Set via `VITE_TONCENTER_API_KEY` at deploy time; absent →
+ * the unkeyed public endpoint is used (degrades gracefully). A client-held key is fine for a
+ * **testnet demo**; production confirmation authority still belongs server-side (server-notes §2).
+ */
+export const TONCENTER_API_KEY = import.meta.env.VITE_TONCENTER_API_KEY ?? '';
+
 /** Testnet explorer link for a confirmed transaction. */
 export function explorerTxUrl(txHash: string): string {
   return `https://testnet.tonviewer.com/transaction/${encodeURIComponent(txHash)}`;

@@ -52,13 +52,13 @@ These are inherent to a client-only demo and **cannot** be closed client-side:
 - [ ] **Dependency advisories** — `valibot` ReDoS via `@telegram-apps/*` (upstream; monitor)
       and the dev-only `esbuild`/`vite` advisories (not shipped). No `npm audit fix --force`.
       (`server-notes.md` §3)
-- [ ] **Indexer trust** — the public toncenter endpoint is unkeyed; a real deployment should
-      use a keyed/owned node for confirmations. (`server-notes.md` §2)
-  - ⚠️ **PRE-VIDEO STEP (not the full key/backend work):** before recording the §8 demo video,
-        switch the toncenter confirmation to a **keyed endpoint** so the public rate-limit can't
-        leave a real payment stuck on "Confirming…". On-device QA already hit this (the fallback
-        path), so the video's payment-success moment needs the keyed endpoint to be reliable.
-        Not implemented now — flagged as required before the §2 video shoot.
+- [ ] **Indexer trust** — confirmation still asks a public indexer and believes the answer;
+      real-money confirmation authority belongs to a server holding its own key. (`server-notes.md` §2)
+  - ✅ **PRE-VIDEO STEP — DONE:** the toncenter confirmation now uses a **keyed endpoint** via
+        `VITE_TONCENTER_API_KEY` (`X-API-Key` header; unkeyed public fallback when absent),
+        removing the rate-limit that stalled "Confirming…" so the video's payment-success moment
+        is reliable. NOTE: the key only raises the rate limit — it is client-side/public and is
+        NOT confirmation authority; server-side verification remains the open item above.
 
 ## 5. Git identity — corrupted authorship (publish-blocker)
 

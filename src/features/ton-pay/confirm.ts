@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TON_INDEXER_BASE } from './config';
+import { TON_INDEXER_BASE, TONCENTER_API_KEY } from './config';
 
 /** The minimal slice of a toncenter v3 transaction we rely on. */
 export interface IndexerTransaction {
@@ -76,6 +76,15 @@ export function matchPaymentTx(
 }
 
 /**
+ * Auth header for toncenter when an API key is configured (raises the rate limit so
+ * confirmation is reliable). Empty when no key → the request still works against the unkeyed
+ * public endpoint (graceful degradation). Auth only — does not touch the query or response.
+ */
+export function indexerHeaders(apiKey: string = TONCENTER_API_KEY): Record<string, string> {
+  return apiKey ? { 'X-API-Key': apiKey } : {};
+}
+
+/**
  * Fetch a testnet account's recent transactions from the toncenter v3 indexer. The query
  * is scoped to `account`, so every returned `in_msg` is inbound to our recipient — we
  * don't re-check the destination (which would need address normalisation). Response is
@@ -86,7 +95,7 @@ export async function fetchRecentTransactions(
   signal?: AbortSignal,
 ): Promise<IndexerTransaction[]> {
   const url = `${TON_INDEXER_BASE}/transactions?account=${encodeURIComponent(account)}&limit=20&sort=desc`;
-  const res = await fetch(url, signal ? { signal } : undefined);
+  const res = await fetch(url, { headers: indexerHeaders(), ...(signal ? { signal } : {}) });
   if (!res.ok) {
     throw new Error(`Indexer error: ${res.status} ${res.statusText}`);
   }

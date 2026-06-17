@@ -78,6 +78,13 @@ For real money the server must own the truth:
 The client's `matchPaymentTx` (amount + comment + time) is the same shape of check, but
 run somewhere an attacker controls — so it is a UX nicety, not an authorization.
 
+**On the client-held toncenter API key** (`VITE_TONCENTER_API_KEY`): the demo sets it to
+raise the indexer rate limit so confirmation is reliable for the video. It is build-time
+inlined and therefore **public** (readable from the bundle / network) — it buys rate limit,
+**not trust**. A client key querying an indexer is still "ask someone and believe the answer",
+so it changes nothing above. Production confirmation authority belongs to a **server** holding
+its own key and verifying receipt per (1)–(4).
+
 ---
 
 ## 3. Dependency advisories (security review F6)

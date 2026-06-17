@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { matchPaymentTx, parseIndexerResponse, type IndexerTransaction } from './confirm';
+import {
+  matchPaymentTx,
+  parseIndexerResponse,
+  indexerHeaders,
+  type IndexerTransaction,
+} from './confirm';
 
 function tx(
   hash: string,
@@ -71,5 +76,15 @@ describe('parseIndexerResponse (F3 — fail-closed)', () => {
     const txs = parseIndexerResponse(data);
     expect(txs).toHaveLength(1);
     expect(txs[0]?.hash).toBe('ok');
+  });
+});
+
+describe('indexerHeaders (keyed → reliable; unkeyed → graceful fallback)', () => {
+  it('adds the X-API-Key header when a key is configured', () => {
+    expect(indexerHeaders('test-key')).toEqual({ 'X-API-Key': 'test-key' });
+  });
+
+  it('sends no auth header (unkeyed public endpoint) when the key is absent', () => {
+    expect(indexerHeaders('')).toEqual({});
   });
 });
