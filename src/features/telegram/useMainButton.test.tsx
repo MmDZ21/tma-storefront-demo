@@ -54,7 +54,10 @@ describe('useMainButton', () => {
     }
   });
 
-  it('pushes the current label to the native button on every change (no stale render — BUG 2)', () => {
+  // NOTE: the hook posts fresh text correctly (verified here); the BUG 2 lag was the mobile
+  // Telegram CLIENT applying setParams a frame behind — fixed by moving the amount to the DOM
+  // (see Product/Cart). This remains a useful guard that the hook drives the button's label.
+  it('pushes the current label to the native button on every change', () => {
     const { rerender } = render(<Harness text="Add to cart · 1.5 TON" />);
     rerender(<Harness text="Add to cart · 3 TON" />);
     rerender(<Harness text="Add to cart · 4.5 TON" />);

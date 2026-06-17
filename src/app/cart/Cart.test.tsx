@@ -35,13 +35,16 @@ describe('<Cart />', () => {
     vi.unstubAllGlobals();
   });
 
-  it('lists cart items with a subtotal and the pay CTA', async () => {
+  it('shows the subtotal amount in the DOM with a static pay CTA (amount off the native button)', async () => {
     renderWithProviders(<App />, { route: '/cart' });
     expect(await screen.findByText('Ethiopia')).toBeInTheDocument();
     expect(screen.getByText('Brazil')).toBeInTheDocument();
-    // 1.5*2 + 1.3 = 4.3 — the MainButton carries the running total (SPEC §5).
+    // 1.5*2 + 1.3 = 4.3 — the amount lives in the DOM Subtotal line, NOT on the native
+    // MainButton (mobile Telegram lags its setParams text; BUG 2).
     expect(screen.getByText('Subtotal')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /pay with TON.*4\.3 TON/i })).toBeInTheDocument();
+    expect(screen.getByText(/4\.3 TON/)).toBeInTheDocument();
+    const cta = screen.getByRole('button', { name: 'Pay with TON' });
+    expect(cta).not.toHaveTextContent(/4\.3/);
   });
 
   it('removes a line item', async () => {

@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useBrand } from '@/features/theming';
 import { haptics, useBackButton, useTelegram } from '@/features/telegram';
 import { cartTotalNano, useCartStore, type CartLine } from '@/entities/cart/cartStore';
 import { useOrderStore } from '@/entities/order/orderStore';
@@ -51,7 +50,6 @@ function CartRow({ line }: { line: CartLine }) {
  */
 export function Cart() {
   const navigate = useNavigate();
-  const brand = useBrand();
   const { nativeControls } = useTelegram();
   const lines = useCartStore((s) => s.lines);
   const clear = useCartStore((s) => s.clear);
@@ -66,7 +64,6 @@ export function Cart() {
 
   const items = Object.values(lines);
   const totalNano = cartTotalNano(lines);
-  const totalLabel = `${nanoToTon(totalNano)} ${brand.currency.label}`;
 
   const finish = (orderId: string) => {
     clear();
@@ -111,12 +108,15 @@ export function Cart() {
     finish(order.id);
   };
 
+  // Static label — the amount lives in the DOM "Subtotal" line above, not the native
+  // MainButton (mobile Telegram lags/coalesces its setParams text; BUG 2). The subtotal
+  // updates as line quantities change; the button text only reflects connect/pay state.
   const primaryText = !tonConfigured
     ? 'TON payment unavailable — use Demo mode'
     : paying
       ? 'Confirm in your wallet…'
       : connected
-        ? `Pay with TON · ${totalLabel}`
+        ? 'Pay with TON'
         : 'Connect wallet to pay';
 
   return (

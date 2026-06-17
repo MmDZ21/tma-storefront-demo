@@ -4,7 +4,6 @@ import { useBrand, useBrandReady } from '@/features/theming';
 import { haptics, useBackButton, useTelegram } from '@/features/telegram';
 import { useProducts } from '@/app/catalog/useProducts';
 import { useCartStore } from '@/entities/cart/cartStore';
-import { formatTokenAmount } from '@/shared/format';
 import { Price } from '@/shared/ui/Price';
 import { Stepper } from '@/shared/ui/Stepper';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
@@ -103,12 +102,21 @@ export function Product() {
           <span className="text-sm font-medium text-foreground">Quantity</span>
           <Stepper value={qty} onChange={setQty} />
         </div>
+
+        {/* The line total lives here in the DOM, not on the native MainButton: mobile
+            Telegram lags/coalesces the MainButton's setParams text, so a value that changes
+            on every +/- can't ride it (BUG 2). A plain React element updates instantly on
+            all platforms. The button stays a static "Add to cart". */}
+        <div
+          data-testid="product-total"
+          className="mt-4 flex items-center justify-between border-t border-border pt-4"
+        >
+          <span className="text-sm font-medium text-foreground">Total</span>
+          <Price priceTon={total} className="text-base font-semibold" />
+        </div>
       </div>
 
-      <PrimaryButton
-        text={`Add to cart · ${formatTokenAmount(total)} ${brand.currency.label}`}
-        onClick={handleAdd}
-      />
+      <PrimaryButton text="Add to cart" onClick={handleAdd} />
     </main>
   );
 }
