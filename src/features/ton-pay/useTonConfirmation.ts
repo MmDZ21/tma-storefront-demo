@@ -31,7 +31,6 @@ export function useTonConfirmation(
   const orderId = order?.id;
   const amountNano = order?.amountNano;
   const comment = order?.paymentNonce;
-  const sinceUnix = order ? Math.floor(order.createdAt / 1000) : 0;
 
   useEffect(() => {
     if (!watch || !orderId || !amountNano || !comment || !isRecipientConfigured()) {
@@ -43,7 +42,6 @@ export function useTonConfirmation(
     void watchTonPayment({
       recipient: TON_RECIPIENT_TESTNET,
       amountNano,
-      sinceUnix,
       comment,
       signal: controller.signal,
     }).then((txHash) => {
@@ -52,7 +50,7 @@ export function useTonConfirmation(
       else setPhase('unconfirmed');
     });
     return () => controller.abort();
-  }, [watch, orderId, amountNano, comment, sinceUnix, attempt]);
+  }, [watch, orderId, amountNano, comment, attempt]);
 
   const retry = () => setAttempt((n) => n + 1);
   return { phase, retry };

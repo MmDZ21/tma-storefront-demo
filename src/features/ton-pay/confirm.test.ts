@@ -20,13 +20,13 @@ function tx(
 }
 
 describe('matchPaymentTx', () => {
-  const criteria = { amountNano: '4300000000', sinceUnix: 1000, comment: 'nonce-1' };
+  const criteria = { amountNano: '4300000000', comment: 'nonce-1' };
 
-  it('matches an inbound tx with the right comment, amount, and time', () => {
+  it('matches an inbound tx with the right comment and amount', () => {
     expect(matchPaymentTx([tx('h1', '4300000000', 1500, 'nonce-1')], criteria)).toBe('h1');
   });
 
-  it('does NOT match another order’s comment, even with equal amount + time (F1)', () => {
+  it('does NOT match another order’s comment, even with an equal amount (F1)', () => {
     expect(matchPaymentTx([tx('h1', '4300000000', 1500, 'nonce-OTHER')], criteria)).toBeNull();
   });
 
@@ -39,8 +39,21 @@ describe('matchPaymentTx', () => {
     expect(matchPaymentTx([tx('h1', '1', 1500, 'nonce-1')], criteria)).toBeNull();
   });
 
-  it('rejects a matching comment that predates the order', () => {
-    expect(matchPaymentTx([tx('old', '4300000000', 999, 'nonce-1')], criteria)).toBeNull();
+  it('matches regardless of on-chain time — the nonce binds, not the clock (no time bound)', () => {
+    // tx.now far BEFORE the order's createdAt would be: under the old `tx.now >= sinceUnix`
+    // bound this was wrongly rejected (the clock-skew "stuck on Confirming…" bug). The
+    // per-order nonce already binds it to this order, so on-chain time is irrelevant.
+    expect(matchPaymentTx([tx('early', '4300000000', 1, 'nonce-1')], criteria)).toBe('early');
+  });
+
+  it('with two equal-amount txs of DIFFERENT nonces, matches only this order’s nonce (F1)', () => {
+    // The real security property: amount alone collides; the nonce disambiguates. The
+    // wrong-nonce tx is the more recent one, proving selection is by nonce, not recency.
+    const txs = [
+      tx('other', '4300000000', 5000, 'nonce-OTHER'),
+      tx('mine', '4300000000', 1500, 'nonce-1'),
+    ];
+    expect(matchPaymentTx(txs, criteria)).toBe('mine');
   });
 
   it('returns null for an empty list', () => {

@@ -48,29 +48,32 @@ export function parseIndexerResponse(data: unknown): IndexerTransaction[] {
 export interface PaymentCriteria {
   /** Exact nanoton amount expected (string, from the Order). */
   amountNano: string;
-  /** Unix seconds; only transactions at/after this count. */
-  sinceUnix: number;
   /** Per-order comment nonce that uniquely binds an on-chain tx to THIS order. */
   comment: string;
 }
 
 /**
  * Find the transaction confirming THIS order among a recipient's recent inbound txs: an
- * incoming message carrying our unique comment `nonce`, of exactly `amountNano`, on/after
- * `sinceUnix`. The comment makes attribution **unique** (no equal-amount collision, no
- * riding another buyer's payment — security review F1); the amount guards underpayment;
- * the time bounds it. Returns the tx hash, or null. Requires the comment to be present —
- * an undecoded/absent comment never matches (fail-closed).
+ * incoming message carrying our unique comment `nonce`, of exactly `amountNano`. The
+ * comment makes attribution **unique** — no equal-amount collision, no riding another
+ * buyer's payment (security review F1) — and the amount guards underpayment. Returns the
+ * tx hash, or null. Requires the comment to be present — an undecoded/absent comment never
+ * matches (fail-closed).
+ *
+ * Deliberately NO time bound. The per-order nonce already binds a tx to exactly one order,
+ * so a tx whose on-chain `now` predates the order can't be some other order's payment. A
+ * `tx.now >= sinceUnix` check added only a clock-skew failure mode: `sinceUnix` derives
+ * from `order.createdAt`, which is stamped *after* the wallet returns and routinely lands a
+ * second or more AFTER the tx's own `now` — silently rejecting the real payment (the
+ * "stuck on Confirming…" bug). The nonce gives exact binding without trusting any clock.
  */
 export function matchPaymentTx(
   transactions: IndexerTransaction[],
-  { amountNano, sinceUnix, comment }: PaymentCriteria,
+  { amountNano, comment }: PaymentCriteria,
 ): string | null {
   const match = transactions.find(
     (tx) =>
-      tx.in_msg?.message_content?.decoded?.comment === comment &&
-      tx.in_msg?.value === amountNano &&
-      tx.now >= sinceUnix,
+      tx.in_msg?.message_content?.decoded?.comment === comment && tx.in_msg?.value === amountNano,
   );
   return match ? match.hash : null;
 }
@@ -117,14 +120,14 @@ export interface WatchOptions extends PaymentCriteria {
  * 'placed' and shows an "awaiting confirmation" terminal state, never dead-ends).
  */
 export async function watchTonPayment(opts: WatchOptions): Promise<string | null> {
-  const { recipient, amountNano, sinceUnix, comment, signal } = opts;
+  const { recipient, amountNano, comment, signal } = opts;
   const attempts = opts.attempts ?? 20;
   const intervalMs = opts.intervalMs ?? 3000;
   for (let i = 0; i < attempts; i++) {
     if (signal?.aborted) return null;
     try {
       const txs = await fetchRecentTransactions(recipient, signal);
-      const hash = matchPaymentTx(txs, { amountNano, sinceUnix, comment });
+      const hash = matchPaymentTx(txs, { amountNano, comment });
       if (hash) return hash;
     } catch {
       // Transient indexer error — keep trying within the bounded window.
