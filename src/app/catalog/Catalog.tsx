@@ -34,9 +34,14 @@ export function Catalog() {
     <>
       <Header />
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 pb-12 pt-5">
-        <h1 className="font-display text-xl font-semibold text-balance text-foreground">
-          {brand.welcomeLine}
-        </h1>
+        {/* Skeleton (not DEFAULT_BRAND's line) until the active skin resolves — see Header. */}
+        {brandReady ? (
+          <h1 className="font-display text-xl font-semibold text-balance text-foreground">
+            {brand.welcomeLine}
+          </h1>
+        ) : (
+          <Skeleton className="h-7 w-3/4" />
+        )}
 
         {state.status === 'loading' && <CatalogSkeleton />}
 

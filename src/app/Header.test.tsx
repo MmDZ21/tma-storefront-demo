@@ -40,4 +40,15 @@ describe('<Header />', () => {
     renderWithProviders(<Header />);
     expect(screen.getByText('3')).toBeInTheDocument();
   });
+
+  it('shows neutral skeletons, never the default brand, while brand.json loads', () => {
+    // A fetch that never settles keeps the brand in its pre-resolution state.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((): Promise<Response> => new Promise(() => {})),
+    );
+    const { container } = renderWithProviders(<Header />);
+    expect(screen.queryByText('TON Storefront')).not.toBeInTheDocument();
+    expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+  });
 });

@@ -1,6 +1,7 @@
 import { QRCodeSVG } from 'qrcode.react';
-import { useBrand } from '@/features/theming';
+import { useBrand, useBrandReady } from '@/features/theming';
 import { APP } from '@/config/app';
+import { Skeleton } from '@/shared/ui/Skeleton';
 
 /**
  * Shown when the app is opened outside Telegram (SPEC §3.9). A slim, branded page
@@ -9,11 +10,15 @@ import { APP } from '@/config/app';
  */
 export function OutsideTelegram() {
   const brand = useBrand();
+  // Neutral skeletons until brand.json resolves — never flash the default brand.
+  const ready = useBrandReady();
 
   return (
     <main className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col items-center justify-center gap-6 px-6 py-10 text-center">
       <span className="grid h-16 w-16 place-items-center overflow-hidden rounded-2xl bg-primary/12">
-        {brand.logoUrl ? (
+        {!ready ? (
+          <Skeleton className="h-full w-full rounded-none" />
+        ) : brand.logoUrl ? (
           <img src={brand.logoUrl} alt="" className="h-full w-full object-cover" />
         ) : (
           <span className="text-3xl" aria-hidden>
@@ -23,7 +28,11 @@ export function OutsideTelegram() {
       </span>
 
       <div>
-        <h1 className="font-display text-2xl font-semibold text-foreground">{brand.name}</h1>
+        {ready ? (
+          <h1 className="font-display text-2xl font-semibold text-foreground">{brand.name}</h1>
+        ) : (
+          <Skeleton className="mx-auto h-8 w-40" />
+        )}
         <p className="mt-2 text-muted-foreground">This app lives inside Telegram.</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Scan the code, or open it on a device with Telegram installed.

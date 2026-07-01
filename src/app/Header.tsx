@@ -1,17 +1,23 @@
 import { Link } from 'react-router-dom';
-import { useBrand } from '@/features/theming';
+import { useBrand, useBrandReady } from '@/features/theming';
 import { cartCount, useCartStore } from '@/entities/cart/cartStore';
+import { Skeleton } from '@/shared/ui/Skeleton';
 
 /** Sticky brand header — logo (image or emoji), shop name, and a cart indicator. */
 export function Header() {
   const brand = useBrand();
+  // Until brand.json resolves, show neutral skeletons instead of the DEFAULT_BRAND
+  // fallback — a re-skinned deploy must never flash "TON Storefront" on first paint.
+  const ready = useBrandReady();
   const count = useCartStore((state) => cartCount(state.lines));
 
   return (
     <header className="sticky top-0 z-10 border-b border-border bg-header/80 backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-md items-center gap-3 px-4 py-3">
         <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-control bg-primary/12">
-          {brand.logoUrl ? (
+          {!ready ? (
+            <Skeleton className="h-full w-full rounded-none" />
+          ) : brand.logoUrl ? (
             <img
               src={brand.logoUrl}
               alt={`${brand.name} logo`}
@@ -24,9 +30,13 @@ export function Header() {
           )}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-base font-semibold text-foreground">
-            {brand.name}
-          </p>
+          {ready ? (
+            <p className="truncate font-display text-base font-semibold text-foreground">
+              {brand.name}
+            </p>
+          ) : (
+            <Skeleton className="h-5 w-28" />
+          )}
           <p className="truncate text-xs text-muted-foreground">Telegram Mini App</p>
         </div>
         <Link
