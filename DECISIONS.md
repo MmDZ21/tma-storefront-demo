@@ -710,3 +710,73 @@ startapp mapping) · `vite build` clean. First-paint JS **97.8 KB gzip** (budget
 grammY not bundled. In-browser: clean load, refresh-safety, and startapp→route mapping
 verified; 0 console errors. **On-device QA pending** (real deep-link round-trip; bot
 `/start` + menu button on a real client) — not self-certified, needs a real device (proxy/tunnel).
+
+---
+
+## Record-and-deploy polish (2026-07-02)
+
+Pre-recording review pass over the whole codebase (all-green gate). Every fix below
+targets a moment the on-camera funnel could look broken; all are UX-only — **no
+payment/amount logic was touched**.
+
+### Cart chunk: skeleton fallback + idle prefetch
+
+- The lazy cart route carries the TON Connect SDK (~724 KB min / ~215 KB gzip). Its
+  Suspense fallback was a blank `min-h-[60vh]` div — on a phone connection the first
+  tap on the cart could show a visibly empty screen mid-funnel. Now: a cart-shaped
+  skeleton (`CartFallback` in `App.tsx`), plus an idle **prefetch** of the chunk 1.5 s
+  after first paint (clear of the brand/products fetches), so the chunk is warm before
+  anyone can reach the cart. `React.lazy` and the prefetch share one importer function,
+  so the module is fetched at most once.
+
+### BackButton on deep-linked subpages
+
+- `navigate(-1)` silently no-ops when the subpage is the FIRST history entry (a
+  `?startapp=product_<id>` / `?startapp=cart` deep link, or a reload) — leaving the
+  native BackButton visibly dead. New `useGoBack()` (`src/app/useGoBack.ts`) falls back
+  to `/` (replace) in that case, detected via React Router's convention of keying a
+  session's first location `'default'`. Unit-tested both ways (deep-link fallback, and a
+  3-deep stack popping to the middle entry to prove real history use).
+
+### No default-brand flash on first paint
+
+- The header, catalog welcome line, and outside-Telegram fallback rendered
+  `DEFAULT_BRAND` ("TON Storefront") until `brand.json` resolved — a brief wrong-brand
+  flash at the exact "open from bot" moment a demo records. They now render neutral
+  skeletons until `useBrandReady()`; the cart-count badge stays live throughout.
+  Products were already gated on brand readiness; this closes the header/title gap.
+
+### TON Connect manifest icon must be PNG
+
+- `iconUrl` pointed at `favicon.svg`, but the TON Connect manifest spec does **not**
+  support SVG icons — wallets could show a broken icon on the connect/approve sheet, on
+  camera during the payment beat. Shipped `public/icon-180.png` (180×180 PNG32
+  rasterized from favicon.svg with ImageMagick at `-density 360`) and pointed the
+  manifest, a new `apple-touch-icon`, and `og:image` at it. ASSUMPTION: regenerated
+  manually if favicon.svg ever changes (one-off; not worth a build step).
+
+### Link-preview meta tags
+
+- `index.html` had no description/OG/Twitter tags, so the deployed URL pasted into a
+  Telegram chat unfurled with nothing. Added brand-neutral static copy (crawlers can't
+  run the runtime brand fetch) plus `theme-color`. `og:url`/`og:image` are absolute per
+  the OG spec and pin the demo origin — same per-deploy nature as
+  `tonconnect-manifest.json`; both are now called out in PERSONALIZE.md.
+
+### i18n (EN + RU) — descope made explicit
+
+- SPEC §2 lists "EN + RU"; the RU dictionaries were deferred during the slices and never
+  built. Rather than leave the spec/code mismatch silent, the descope is now logged here
+  and in the README's "Known limitations". Closing it later is a tiny-dictionary task
+  (no i18n framework, per SPEC §2).
+
+### Repo hygiene
+
+- `videos/` (local phone recordings, ~13 MB) is now gitignored — never committed.
+- `chunkSizeWarningLimit: 750` silences Vite's 500 KB warning for the known, deliberate
+  cart chunk so build logs stay clean; anything larger still warns.
+
+### Verification
+
+`tsc -b` · `eslint .` · **113 tests** (was 110: +2 useGoBack, +1 header skeleton) ·
+`vite build` all green; first-paint JS budget unchanged (~98.5 KB gzip vs 250 budget).

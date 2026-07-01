@@ -1,9 +1,9 @@
 # Publish checklist
 
-The client app is feature-complete and verified (tsc · eslint · 104 tests · build ·
-format:check all green). This tracks everything still required **before the repo goes
-public / the app goes live** — none of it is actioned yet; it needs a device, a real
-wallet, a deploy target, or an explicit decision.
+The client app is feature-complete and verified (tsc · eslint · 113 tests · build ·
+format:check all green). This tracks everything required **before the repo goes public**
+— items are checked off (✅ DONE) as they land; what's left needs a device, a real
+wallet, or an explicit decision.
 
 ## 1. On-device / real-wallet QA (needs Tonkeeper testnet + a proxy/tunnel)
 
@@ -31,14 +31,20 @@ wallet, a deploy target, or an explicit decision.
 
 ## 3. Deploy + wire live links
 
-- [ ] **Cloudflare Pages** deploy; set build-time env there: `VITE_TON_RECIPIENT_TESTNET`,
-      `VITE_BOT_URL`.
-- [ ] **`public/tonconnect-manifest.json`** — set `url` + `iconUrl` to the real deployed
-      HTTPS origin (currently the `tma-storefront-demo.pages.dev` placeholder).
-- [ ] **Bot** on the VPS via pm2 (`BOT_TOKEN`, `WEB_APP_URL`); register the Mini App in
-      BotFather; set `VITE_BOT_URL` to the real deep link.
-- [ ] Fill the README **Live** links; confirm the **CI badge slug** matches the real GitHub
-      path (currently assumes `MmDZ21/tma-storefront-demo`).
+- [x] **Cloudflare Pages** deploy — ✅ **DONE** (live at `tma-storefront-demo.pages.dev`,
+      verified by the on-device payment QA in §1). Deployed via `wrangler pages deploy dist`
+      (direct upload): `dist` is built locally, so the build-time env comes from the local
+      `.env` (`VITE_TON_RECIPIENT_TESTNET`, `VITE_BOT_URL`, `VITE_TONCENTER_API_KEY`). If
+      CI-side builds are ever adopted, mirror those in the Pages project settings.
+- [x] **`public/tonconnect-manifest.json`** — ✅ **DONE**: `url` + `iconUrl` point at the
+      real deployed origin (`tma-storefront-demo.pages.dev`), and `iconUrl` is now a **PNG**
+      (`/icon-180.png`) per the TON Connect manifest spec (SVG icons are not supported).
+- [ ] **Bot process** on the VPS via pm2 (`BOT_TOKEN`, `WEB_APP_URL`). The Mini App is
+      registered in BotFather (`@tma_demo_bot/store` ✅, see §1) and `VITE_BOT_URL` points
+      at the real deep link ✅ — only the long-polling `/start` process still needs hosting.
+- [ ] Confirm the **CI badge slug** matches the real GitHub path on first push (currently
+      assumes `MmDZ21/tma-storefront-demo`). The README **Live** links are filled ✅
+      (app + bot deep link).
 
 ## 4. Server-side hardening — the four HONEST-TODOs (see `server-notes.md`)
 

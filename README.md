@@ -7,10 +7,11 @@ A polished **Telegram Mini App storefront** with **TON (testnet) payments** — 
 piece and a **re-skinnable demo template**. Native Telegram feel, automatic dark/light
 theming from the client, a full purchase funnel, and a one-file personalization layer.
 
-> **Status — feature-complete client, pre-launch.** Every screen in the funnel is built,
-> typechecked, and tested (104 tests). What remains before the repo goes public is tracked
-> in [`PUBLISH-CHECKLIST.md`](./PUBLISH-CHECKLIST.md): on-device wallet QA, the media below,
-> a live deploy, and the documented server-side hardening (see _Security & trust boundary_).
+> **Status — feature-complete, deployed to testnet.** Every screen in the funnel is built,
+> typechecked, and tested (113 tests); the TON payment round-trip and `startapp` deep links
+> are verified on-device. What remains before the repo goes public is tracked in
+> [`PUBLISH-CHECKLIST.md`](./PUBLISH-CHECKLIST.md): the demo media below, a git-identity
+> history rewrite, and the documented server-side hardening (see _Security & trust boundary_).
 
 ## Demo
 
@@ -19,7 +20,9 @@ theming from the client, a full purchase funnel, and a one-file personalization 
 > 🎬 **Hero GIF · 3 screenshots · 90-second walkthrough** land here after on-device QA
 > (shot list in [`PUBLISH-CHECKLIST.md`](./PUBLISH-CHECKLIST.md)).
 
-> 🔗 **Live app (Cloudflare Pages) + bot link** go here after deploy.
+> 🔗 **Live app:** <https://tma-storefront-demo.pages.dev> — in a plain browser you'll get
+> the QR fallback page; the storefront itself opens inside Telegram via the bot:
+> **<https://t.me/tma_demo_bot/store>** (payments on TON **testnet**).
 
 ## Features
 
@@ -171,6 +174,21 @@ bot/           # grammY launcher (separate Node process)
 docs/          # PERSONALIZE.md
 scripts/       # build-time asset generators
 ```
+
+## Known limitations (deliberate demo scope)
+
+- **Client-only** — no backend; the on-chain payment confirmation is advisory/UX.
+  [`server-notes.md`](./server-notes.md) documents the real trust boundary and exactly
+  what moves server-side for real money.
+- **In-memory cart & orders** — state lives in Zustand; a refresh clears it (persistence
+  is out of scope per SPEC §4).
+- **English-only UI** — the spec's EN + RU was descoped for v1; logged in
+  [`DECISIONS.md`](./DECISIONS.md).
+- **Static USD hint** — `currency.usdRate` in brand.json is a fixed display rate, not a
+  price feed.
+- **Testnet only** — mainnet, fiat, and Telegram Stars are out of scope by design.
+- **~215 KB gzip cart chunk** — the TON Connect SDK, deliberately lazy-loaded (and
+  prefetched at idle) so it never touches first paint.
 
 ## License
 
