@@ -43,3 +43,6 @@ Thumbs.db
 # Local screenshot / browser-automation artifacts
 .playwright-mcp/
 
+# Local demo recordings (phone captures — never committed)
+videos/
+

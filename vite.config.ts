@@ -13,6 +13,9 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
+    // The lazy cart chunk carries the TON Connect SDK (~724 KB min / ~215 KB gzip) —
+    // deliberately code-split off first paint (SPEC §7); warn only past that known size.
+    chunkSizeWarningLimit: 750,
   },
   test: {
     globals: true,
