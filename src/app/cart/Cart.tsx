@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { haptics, useBackButton, useTelegram } from '@/features/telegram';
+import { useGoBack } from '@/app/useGoBack';
 import { cartTotalNano, useCartStore, type CartLine } from '@/entities/cart/cartStore';
 import { useOrderStore } from '@/entities/order/orderStore';
 import { useTonPay } from '@/features/ton-pay/useTonPay';
@@ -59,7 +60,8 @@ export function Cart() {
   const [paying, setPaying] = useState(false);
   const inFlight = useRef(false);
 
-  const goBack = () => navigate(-1);
+  // Falls back to the catalog when deep-linked straight here (`?startapp=cart`).
+  const goBack = useGoBack();
   useBackButton(goBack, nativeControls);
 
   const items = Object.values(lines);

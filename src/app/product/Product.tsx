@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useBrand, useBrandReady } from '@/features/theming';
 import { haptics, useBackButton, useTelegram } from '@/features/telegram';
 import { useProducts } from '@/app/catalog/useProducts';
+import { useGoBack } from '@/app/useGoBack';
 import { useCartStore } from '@/entities/cart/cartStore';
 import { Price } from '@/shared/ui/Price';
 import { Stepper } from '@/shared/ui/Stepper';
@@ -34,7 +35,8 @@ export function Product() {
   const add = useCartStore((s) => s.add);
   const [qty, setQty] = useState(1);
 
-  const goBack = () => navigate(-1);
+  // Falls back to the catalog when deep-linked straight here (no history to pop).
+  const goBack = useGoBack();
   useBackButton(goBack, nativeControls);
 
   if (state.status === 'loading') {
