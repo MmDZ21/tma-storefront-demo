@@ -2,22 +2,23 @@
 
 The client app is feature-complete and verified (tsc · eslint · 113 tests · build ·
 format:check all green). This tracks everything required **before the repo goes public**
-— items are checked off (✅ DONE) as they land; what's left needs a device, a real
-wallet, or an explicit decision.
+— items are checked off (✅ DONE) as they land; what's left is either a final push check
+or an explicitly documented client-only limitation.
 
 ## 1. On-device / real-wallet QA (needs Tonkeeper testnet + a proxy/tunnel)
 
 - [x] **TON payment round-trip** — ✅ **DONE** (on-device, inside Telegram). Both paths
       verified: happy path (Tonkeeper testnet → comment-nonce match → reached **delivered**)
       AND the indexer-slow fallback ("couldn't confirm / Check again" → verified on the explorer).
-- [ ] **Bot** — chat **menu button** + named **Mini App** (`/newapp`) launch the app on-device
-      ✅; `/start` via the running bot process (`npm run bot`, real `BOT_TOKEN`) still to verify.
+- [x] **Bot / Mini App launch** — ✅ **DONE**: the BotFather named Mini App
+      (`@tma_demo_bot/store`) launches the app on-device. The long-polling grammY `/start`
+      process is optional for this public demo, not a publish blocker.
 - [x] **Deep-link round-trip** — ✅ **DONE** (real client, `@tma_demo_bot/store` via BotFather
       `/newapp`): `?startapp=product_<id>` → that product, plain launch → catalog,
       `?startapp=cart` → cart all route correctly (`tgWebAppStartParam` → `resolveInitialHash`
       → route, before HashRouter mounts). Reload/refresh-safety: confirm with one reload if not
       already done.
-- [ ] Test on **iOS, Android, and Desktop** Telegram (SPEC §7).
+- [x] Test on **iOS, Android, and Desktop** Telegram (SPEC §7) — ✅ **DONE**.
 
 ## 2. Media — captured after QA. Do NOT fabricate.
 
@@ -39,9 +40,10 @@ wallet, or an explicit decision.
 - [x] **`public/tonconnect-manifest.json`** — ✅ **DONE**: `url` + `iconUrl` point at the
       real deployed origin (`tma-storefront-demo.pages.dev`), and `iconUrl` is now a **PNG**
       (`/icon-180.png`) per the TON Connect manifest spec (SVG icons are not supported).
-- [ ] **Bot process** on the VPS via pm2 (`BOT_TOKEN`, `WEB_APP_URL`). The Mini App is
-      registered in BotFather (`@tma_demo_bot/store` ✅, see §1) and `VITE_BOT_URL` points
-      at the real deep link ✅ — only the long-polling `/start` process still needs hosting.
+- [x] **Bot process / VPS decision** — ✅ **DONE**: no VPS is required for the core demo.
+      Cloudflare Pages hosts the Mini App, and BotFather's named Mini App link
+      (`@tma_demo_bot/store`) is the launch path. The included grammY long-polling `/start`
+      process remains optional follow-up polish.
 - [ ] Confirm the **CI badge slug** matches the real GitHub path on first push (currently
       assumes `MmDZ21/tma-storefront-demo`). The README **Live** links are filled ✅
       (app + bot deep link).
@@ -81,6 +83,9 @@ inside `.git`, not tracked, and should not be pushed.
 
 ## 6. Final pre-push
 
-- [ ] Confirm `.env` is absent from git (gitignored ✓) and `.env.example` holds only
+- [x] Confirm `.env` is absent from git (gitignored ✓) and `.env.example` holds only
       placeholders ✓.
-- [ ] Re-run the full gate green; squash/curate history if desired; push.
+- [x] Re-run the full gate green: `typecheck`, `lint`, `test`, `build`, and `format:check`
+      pass. `npm audit` still reports the documented upstream `valibot` advisory via
+      `@telegram-apps/*`; no `audit fix --force`.
+- [ ] Push to GitHub and confirm the CI badge after the first Actions run.

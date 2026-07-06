@@ -809,3 +809,12 @@ payment/amount logic was touched**.
   flow plus a second skin, and is more appropriate for a GitHub portfolio README.
 - Media is committed under `docs/media/`: a short hero GIF, three funnel screenshots, and
   a compressed MP4. The raw phone recording remains under ignored `videos/`.
+
+### Publish launch path
+
+- A VPS is **not required** for the public demo: Cloudflare Pages hosts the Mini App, and
+  the BotFather named Mini App link (`@tma_demo_bot/store`) launches it directly in
+  Telegram. The grammY bot process remains in the repo as optional `/start` launcher
+  polish, but it is not a publish blocker.
+- On-device launch checks are complete for the supported Telegram clients; remaining
+  pre-push work is repo/CI hygiene, not application behavior.

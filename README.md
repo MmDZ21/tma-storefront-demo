@@ -10,8 +10,8 @@ theming from the client, a full purchase funnel, and a one-file personalization 
 > **Status — feature-complete, deployed to testnet.** Every screen in the funnel is built,
 > typechecked, and tested (113 tests); the TON payment round-trip and `startapp` deep links
 > are verified on-device. What remains before the repo goes public is tracked in
-> [`PUBLISH-CHECKLIST.md`](./PUBLISH-CHECKLIST.md): bot-process hosting, cross-client Telegram
-> QA, final push checks, and the documented server-side hardening (see _Security & trust boundary_).
+> [`PUBLISH-CHECKLIST.md`](./PUBLISH-CHECKLIST.md): final push checks and the documented
+> server-side hardening (see _Security & trust boundary_).
 
 ## Demo
 
@@ -46,8 +46,8 @@ theming from the client, a full purchase funnel, and a one-file personalization 
   ([`PERSONALIZE.md`](./docs/PERSONALIZE.md)).
 - **Outside-Telegram fallback** — opened in a normal browser, a slim branded page with a QR
   code + deep link to the bot.
-- **Bot launcher** — a minimal grammY bot whose only job is to open the Mini App
-  (`/start` → web_app button + chat menu button).
+- **Bot launcher** — the live BotFather Mini App link opens the storefront directly; an optional
+  minimal grammY launcher is included for `/start` → web_app button + chat menu button.
 
 ## Architecture
 
