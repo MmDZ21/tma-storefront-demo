@@ -66,22 +66,18 @@ These are inherent to a client-only demo and **cannot** be closed client-side:
         is reliable. NOTE: the key only raises the rate limit — it is client-side/public and is
         NOT confirmation authority; server-side verification remains the open item above.
 
-## 5. Git identity — corrupted authorship (publish-blocker)
+## 5. Git identity — corrupted authorship
 
-The **global** `.gitconfig` `user.email` was pasted with embedded newlines + shell commands,
-so **every commit's author email is malformed** (`mmohamadzz294@gmail.com` + literal
-`git config …` text). This repo now has a clean **local** identity for new commits, but the
-existing history is still corrupted.
+✅ **DONE:** public identity is `MmDZ21 <mmohamadzz294@gmail.com>`. The global and local git
+config both point at that identity, and `master` history was rewritten before publish so no
+commit author/committer email contains the pasted `git config …` text anymore. A local
+rollback bundle exists at `.git/pre-publish-history-backup-20260706-084814.bundle`; it is
+inside `.git`, not tracked, and should not be pushed.
 
-- [ ] **Decide the public email** — git history uses `mmohamadzz294@gmail.com`; the working
-      account is `mmdzkr20@gmail.com`. Pick one for the public repo.
-- [ ] **Fix the global config**: `git config --global user.email "<chosen>"` (and re-set
-      `user.name`) so other repos stop producing corrupted authors.
-- [ ] **Rewrite history** to the chosen identity before pushing (safe — nothing is pushed):
-      ```bash
-      git filter-repo --mailmap mailmap.txt   # or filter-branch env-filter
-      ```
-      All commit SHAs change; fine for a never-pushed repo.
+- [x] **Decide the public email** — `MmDZ21 <mmohamadzz294@gmail.com>`.
+- [x] **Fix the global config** — `user.name` and `user.email` are clean globally and locally.
+- [x] **Rewrite history** to the chosen identity before pushing. All commit SHAs changed,
+      which is fine for a never-pushed repo.
 
 ## 6. Final pre-push
 
