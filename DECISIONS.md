@@ -801,3 +801,11 @@ payment/amount logic was touched**.
   the upstream `valibot` ReDoS advisory through `@telegram-apps/*`; the earlier
   Vite/Vitest/esbuild dev-tool advisories are no longer present in the current output.
   `@tonconnect` remains clean. The docs were updated to keep the publish notes current.
+
+### Demo media
+
+- The README ships a tighter **~45s walkthrough** instead of the original 90s SPEC shot
+  list. It still shows the real Telegram launch/catalog/product/cart/TON payment/status
+  flow plus a second skin, and is more appropriate for a GitHub portfolio README.
+- Media is committed under `docs/media/`: a short hero GIF, three funnel screenshots, and
+  a compressed MP4. The raw phone recording remains under ignored `videos/`.

@@ -19,15 +19,15 @@ wallet, or an explicit decision.
       already done.
 - [ ] Test on **iOS, Android, and Desktop** Telegram (SPEC §7).
 
-## 2. Media — capture after QA (SPEC §8 shot list). Do NOT fabricate.
+## 2. Media — captured after QA. Do NOT fabricate.
 
-- [ ] **Hero GIF** + **3 screenshots** + **90-second demo video**:
-  - 0–10s: open from bot, instant load, dark theme
-  - 10–30s: browse catalog, add to cart, haptics + MainButton flow
-  - 30–55s: TON Connect, testnet payment, success + tx hash
-  - 55–70s: order-status timeline animating
-  - 70–90s: side-by-side — the same app in two `brand.json` skins
-- [ ] Drop them into the README **Demo** placeholders.
+- [x] **Hero GIF** + **3 screenshots** + **short walkthrough video** — ✅ **DONE**:
+      `docs/media/hero.gif`, `docs/media/screenshot-catalog.jpg`,
+      `docs/media/screenshot-checkout.jpg`, `docs/media/screenshot-status.jpg`, and
+      `docs/media/walkthrough.mp4`. The walkthrough is ~45s instead of the original 90s
+      SPEC shot list; accepted for publish because it shows the full funnel plus re-skin
+      in a tighter portfolio-friendly cut.
+- [x] Drop them into the README **Demo** section.
 
 ## 3. Deploy + wire live links
 

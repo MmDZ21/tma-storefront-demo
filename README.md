@@ -10,15 +10,18 @@ theming from the client, a full purchase funnel, and a one-file personalization 
 > **Status — feature-complete, deployed to testnet.** Every screen in the funnel is built,
 > typechecked, and tested (113 tests); the TON payment round-trip and `startapp` deep links
 > are verified on-device. What remains before the repo goes public is tracked in
-> [`PUBLISH-CHECKLIST.md`](./PUBLISH-CHECKLIST.md): the demo media below, a git-identity
-> history rewrite, and the documented server-side hardening (see _Security & trust boundary_).
+> [`PUBLISH-CHECKLIST.md`](./PUBLISH-CHECKLIST.md): bot-process hosting, cross-client Telegram
+> QA, final push checks, and the documented server-side hardening (see _Security & trust boundary_).
 
 ## Demo
 
-<!-- PLACEHOLDER — captured after on-device QA; do not embed fabricated media. -->
+![Telegram Mini App storefront walkthrough](./docs/media/hero.gif)
 
-> 🎬 **Hero GIF · 3 screenshots · 90-second walkthrough** land here after on-device QA
-> (shot list in [`PUBLISH-CHECKLIST.md`](./PUBLISH-CHECKLIST.md)).
+🎬 **Short walkthrough:** [watch the 45-second MP4](./docs/media/walkthrough.mp4)
+
+| Catalog | Cart + TON checkout | Order status |
+| --- | --- | --- |
+| <img src="./docs/media/screenshot-catalog.jpg" width="260" alt="Telegram Mini App catalog in dark mode" /> | <img src="./docs/media/screenshot-checkout.jpg" width="260" alt="Cart screen with TON checkout and demo payment path" /> | <img src="./docs/media/screenshot-status.jpg" width="260" alt="Order status timeline after TON testnet payment confirmation" /> |
 
 > 🔗 **Live app:** <https://tma-storefront-demo.pages.dev> — in a plain browser you'll get
 > the QR fallback page; the storefront itself opens inside Telegram via the bot:
