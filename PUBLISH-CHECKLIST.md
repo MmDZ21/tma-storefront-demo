@@ -44,8 +44,9 @@ or an explicitly documented client-only limitation.
       Cloudflare Pages hosts the Mini App, and BotFather's named Mini App link
       (`@tma_demo_bot/store`) is the launch path. The included grammY long-polling `/start`
       process remains optional follow-up polish.
-- [ ] Confirm the **CI badge slug** matches the real GitHub path on first push (currently
-      assumes `MmDZ21/tma-storefront-demo`). The README **Live** links are filled ✅
+- [x] Confirm the **CI badge slug** matches the real GitHub path — ✅ **DONE**:
+      `MmDZ21/tma-storefront-demo` is public on GitHub, the README badge points at that
+      path, and the first Actions run passed. The README **Live** links are filled ✅
       (app + bot deep link).
 
 ## 4. Server-side hardening — the four HONEST-TODOs (see `server-notes.md`)
@@ -88,4 +89,4 @@ inside `.git`, not tracked, and should not be pushed.
 - [x] Re-run the full gate green: `typecheck`, `lint`, `test`, `build`, and `format:check`
       pass. `npm audit` still reports the documented upstream `valibot` advisory via
       `@telegram-apps/*`; no `audit fix --force`.
-- [ ] Push to GitHub and confirm the CI badge after the first Actions run.
+- [x] Push to GitHub and confirm the CI badge after the first Actions run.
