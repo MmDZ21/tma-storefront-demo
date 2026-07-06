@@ -89,14 +89,15 @@ its own key and verifying receipt per (1)–(4).
 
 ## 3. Dependency advisories (security review F6)
 
-`npm audit` reports 11 high-severity advisories — **none in `@tonconnect`** (the payment
-dep is clean). They split as:
+As of 2026-07-06, `npm audit --audit-level=moderate` reports **5 high-severity
+advisories** — **none in `@tonconnect`** (the payment dep is clean). The current findings
+are all the Telegram SDK path:
 
-- **Dev/build tooling (6):** vite, vitest, vite-node, @vitest/mocker, @vitejs/plugin-react,
-  esbuild — all rooted in the esbuild dev-server advisory. **Not shipped** to production;
-  relevant only on a developer machine. Bump when a non-breaking patch lands.
 - **Telegram SDK (5):** the `valibot` `EMOJI_REGEX` ReDoS, via `@telegram-apps/*`. Runs on
   launch/theme-param parsing every load (a crafted launch URL could hang the victim's own
   webview — client-side DoS, no data/fund impact). **Upstream-controlled** (we can't bump
   `valibot` directly); monitor for a patched `@telegram-apps` release. Do **not** run
-  `npm audit fix --force` (it pulls breaking majors).
+  `npm audit fix --force` (it downgrades/pulls breaking majors).
+
+Earlier dev/build-tool advisories in the Vite/Vitest/esbuild tree are not present in the
+current audit output.

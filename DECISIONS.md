@@ -780,3 +780,24 @@ payment/amount logic was touched**.
 
 `tsc -b` · `eslint .` · **113 tests** (was 110: +2 useGoBack, +1 header skeleton) ·
 `vite build` all green; first-paint JS budget unchanged (~98.5 KB gzip vs 250 budget).
+
+---
+
+## Publish readiness pass (2026-07-06)
+
+### Git identity
+
+- The public git identity is **`MmDZ21 <mmohamadzz294@gmail.com>`**, matching the current
+  global and local git config and the already-clean newer commits.
+- The first 14 commits had malformed author/committer emails caused by a pasted
+  `git config ...` string. History was rewritten on `master` with `git filter-branch`
+  because `git-filter-repo` was not installed. A local rollback bundle was created at
+  `.git/pre-publish-history-backup-20260706-084814.bundle` before rewriting; it is not
+  tracked or meant to be pushed.
+
+### Audit refresh
+
+- `npm audit --audit-level=moderate` now reports **5 high-severity findings**, all from
+  the upstream `valibot` ReDoS advisory through `@telegram-apps/*`; the earlier
+  Vite/Vitest/esbuild dev-tool advisories are no longer present in the current output.
+  `@tonconnect` remains clean. The docs were updated to keep the publish notes current.

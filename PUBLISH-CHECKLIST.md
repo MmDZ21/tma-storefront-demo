@@ -55,8 +55,8 @@ These are inherent to a client-only demo and **cannot** be closed client-side:
       advisory only. (`server-notes.md` §2)
 - [ ] **Telegram `initData` validation** — server-side HMAC-SHA256 before honoring any
       authenticated request. (`server-notes.md` §1)
-- [ ] **Dependency advisories** — `valibot` ReDoS via `@telegram-apps/*` (upstream; monitor)
-      and the dev-only `esbuild`/`vite` advisories (not shipped). No `npm audit fix --force`.
+- [ ] **Dependency advisories** — current audit (2026-07-06) reports only the `valibot`
+      ReDoS via `@telegram-apps/*` (upstream; monitor). No `npm audit fix --force`.
       (`server-notes.md` §3)
 - [ ] **Indexer trust** — confirmation still asks a public indexer and believes the answer;
       real-money confirmation authority belongs to a server holding its own key. (`server-notes.md` §2)
