@@ -193,6 +193,13 @@ scripts/       # build-time asset generators
 - **~215 KB gzip cart chunk** — the TON Connect SDK, deliberately lazy-loaded (and
   prefetched at idle) so it never touches first paint.
 
+## For clients
+
+This project is a working reference for a branded Telegram Mini App storefront. It can be
+re-skinned for a new catalog, visual identity, and launch path without rebuilding the core
+funnel. See [`docs/CASE-STUDY.md`](./docs/CASE-STUDY.md) for the implementation story and
+[`docs/OFFER.md`](./docs/OFFER.md) for the founding-client offer.
+
 ## License
 
 [MIT](./LICENSE) — the repo is meant to be read, forked, and re-skinned.
