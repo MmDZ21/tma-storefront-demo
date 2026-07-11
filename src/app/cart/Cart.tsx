@@ -10,6 +10,7 @@ import { nanoToTon } from '@/shared/ton';
 import { Price } from '@/shared/ui/Price';
 import { Stepper } from '@/shared/ui/Stepper';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
+import { ArrowLeftIcon, ShieldCheckIcon, SparklesIcon } from '@/shared/ui/Icons';
 
 function CartRow({ line }: { line: CartLine }) {
   const setQty = useCartStore((s) => s.setQty);
@@ -17,14 +18,16 @@ function CartRow({ line }: { line: CartLine }) {
   const { product, qty } = line;
 
   return (
-    <li className="flex gap-3 border-b border-border py-4 last:border-b-0">
+    <li className="flex gap-3 border-b border-border py-3.5 last:border-b-0">
       <img
         src={product.image}
         alt=""
-        className="h-20 w-20 shrink-0 rounded-control bg-muted object-cover"
+        className="h-20 w-20 shrink-0 rounded-[0.9rem] bg-muted object-cover"
       />
       <div className="flex min-w-0 flex-1 flex-col">
-        <p className="truncate font-medium text-card-foreground">{product.name}</p>
+        <p className="truncate font-semibold tracking-[-0.01em] text-card-foreground">
+          {product.name}
+        </p>
         <Price priceTon={product.priceTon} className="mt-0.5 text-sm" />
         <div className="mt-auto flex items-center justify-between pt-2">
           <Stepper value={qty} onChange={(next) => setQty(product.id, next)} />
@@ -123,18 +126,31 @@ export function Cart() {
 
   return (
     <>
-      <header className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-header/80 px-4 py-3 backdrop-blur-md">
-        {!nativeControls && (
-          <button
-            type="button"
-            onClick={goBack}
-            aria-label="Back"
-            className="grid h-9 w-9 place-items-center rounded-full text-xl text-foreground"
-          >
-            ←
-          </button>
-        )}
-        <h1 className="font-display text-lg font-semibold text-foreground">Cart</h1>
+      <header className="sticky top-0 z-10 border-b border-border/80 bg-header/85 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-md items-center gap-3 px-4 py-3.5">
+          {!nativeControls && (
+            <button
+              type="button"
+              onClick={goBack}
+              aria-label="Back"
+              className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card text-foreground shadow-card transition-transform active:scale-95"
+            >
+              <ArrowLeftIcon />
+            </button>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              Secure checkout
+            </p>
+            <h1 className="font-display text-lg font-semibold tracking-[-0.02em] text-foreground">
+              Your order
+            </h1>
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-pill border border-border bg-card px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
+            <ShieldCheckIcon className="h-3.5 w-3.5" />
+            Testnet
+          </span>
+        </div>
       </header>
 
       {items.length === 0 ? (
@@ -153,28 +169,41 @@ export function Cart() {
         </main>
       ) : (
         <>
-          <main className="mx-auto w-full max-w-md px-4 pb-40">
-            <ul>
+          <main className="mx-auto w-full max-w-md px-4 pb-40 pt-4">
+            <ul className="rounded-[1.25rem] border border-border bg-card px-3.5 shadow-card">
               {items.map((line) => (
                 <CartRow key={line.product.id} line={line} />
               ))}
             </ul>
-            <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-              <span className="text-sm text-muted-foreground">Subtotal</span>
-              <Price priceTon={Number(nanoToTon(totalNano))} className="text-base" />
+            <div className="mt-4 flex items-center justify-between rounded-card border border-border bg-card p-4 shadow-card">
+              <div>
+                <span className="block text-sm font-semibold text-foreground">Order total</span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  Network fees excluded
+                </span>
+              </div>
+              <Price priceTon={Number(nanoToTon(totalNano))} className="text-base font-semibold" />
             </div>
 
-            <button
-              type="button"
-              onClick={simulatePayment}
-              disabled={paying}
-              className="mt-6 w-full rounded-control border border-border bg-muted py-3 text-sm font-medium text-foreground disabled:opacity-50"
-            >
-              Demo mode: simulate payment
-            </button>
-            <p className="mt-2 text-center text-xs text-muted-foreground">
-              No wallet? Simulate the payment to finish the demo. Real payments use TON testnet.
-            </p>
+            <section className="mt-4 flex items-center gap-3 rounded-card border border-border bg-card p-3.5">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                <SparklesIcon />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground">Preview the full flow</p>
+                <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                  No wallet needed in demo mode.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={simulatePayment}
+                disabled={paying}
+                className="shrink-0 rounded-pill border border-border bg-muted px-3 py-2 text-xs font-semibold text-foreground transition-colors active:bg-card disabled:opacity-50"
+              >
+                Simulate
+              </button>
+            </section>
           </main>
 
           <PrimaryButton

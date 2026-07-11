@@ -33,12 +33,31 @@ export function Catalog() {
   return (
     <>
       <Header />
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 pb-12 pt-5">
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 pb-14 pt-4">
         {/* Skeleton (not DEFAULT_BRAND's line) until the active skin resolves — see Header. */}
         {brandReady ? (
-          <h1 className="font-display text-xl font-semibold text-balance text-foreground">
-            {brand.welcomeLine}
-          </h1>
+          <section className="relative overflow-hidden rounded-[1.5rem] border border-border bg-card p-5 shadow-card">
+            <div
+              className="pointer-events-none absolute -right-12 -top-16 h-36 w-36 rounded-full bg-primary/15 blur-3xl"
+              aria-hidden="true"
+            />
+            <div className="relative">
+              <span className="inline-flex items-center rounded-pill border border-primary/25 bg-primary/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
+                Curated for Telegram
+              </span>
+              <h1 className="mt-3 max-w-[18rem] font-display text-[1.65rem] font-semibold leading-[1.12] tracking-[-0.025em] text-balance text-foreground">
+                {brand.welcomeLine}
+              </h1>
+              <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">
+                  {state.status === 'ready' ? state.products.length : 8}
+                </span>
+                <span>products</span>
+                <span aria-hidden="true">·</span>
+                <span>{brand.currency.label} checkout</span>
+              </div>
+            </div>
+          </section>
         ) : (
           <Skeleton className="h-7 w-3/4" />
         )}
@@ -53,10 +72,10 @@ export function Catalog() {
 
         {state.status === 'ready' && (
           <>
-            <div className="mt-4">
+            <div className="mt-5">
               <CategoryChips categories={categories} active={category} onSelect={setCategory} />
             </div>
-            <ul className="mt-4 grid grid-cols-2 gap-3">
+            <ul className="mt-4 grid grid-cols-2 gap-3.5">
               {visible.map((product, i) => (
                 <li key={product.id}>
                   <Link

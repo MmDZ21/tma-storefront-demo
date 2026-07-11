@@ -9,6 +9,7 @@ import { Price } from '@/shared/ui/Price';
 import { Stepper } from '@/shared/ui/Stepper';
 import { PrimaryButton } from '@/shared/ui/PrimaryButton';
 import { Skeleton } from '@/shared/ui/Skeleton';
+import { ArrowLeftIcon } from '@/shared/ui/Icons';
 
 function BackChevron({ onClick }: { onClick: () => void }) {
   return (
@@ -16,9 +17,9 @@ function BackChevron({ onClick }: { onClick: () => void }) {
       type="button"
       onClick={onClick}
       aria-label="Back"
-      className="absolute left-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-background/70 text-xl text-foreground backdrop-blur-md"
+      className="absolute left-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-background/75 text-foreground shadow-card backdrop-blur-xl transition-transform active:scale-95"
     >
-      ←
+      <ArrowLeftIcon />
     </button>
   );
 }
@@ -78,30 +79,35 @@ export function Product() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-md pb-28">
-      <div className="relative">
+    <main className="mx-auto w-full max-w-md overflow-hidden pb-28">
+      <div className="relative bg-muted">
         {!nativeControls && <BackChevron onClick={goBack} />}
-        <img
-          src={product.image}
-          alt={product.name}
-          className="aspect-square w-full bg-muted object-cover"
+        <img src={product.image} alt={product.name} className="aspect-square w-full object-cover" />
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/55 to-transparent"
+          aria-hidden="true"
         />
       </div>
 
-      <div className="p-4">
+      <section className="relative -mt-6 rounded-t-[1.75rem] border-t border-border bg-background px-5 pb-5 pt-6 shadow-pop">
         {product.badge && (
           <span className="inline-block rounded-pill bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-primary-foreground">
             {product.badge}
           </span>
         )}
-        <h1 className="mt-2 font-display text-2xl font-semibold text-balance text-foreground">
+        <h1 className="mt-2 font-display text-[1.7rem] font-semibold leading-tight tracking-[-0.025em] text-balance text-foreground">
           {product.name}
         </h1>
         <Price priceTon={product.priceTon} className="mt-2 block text-lg" />
-        <p className="mt-3 leading-relaxed text-muted-foreground">{product.description}</p>
+        <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
+          {product.description}
+        </p>
 
-        <div className="mt-6 flex items-center justify-between">
-          <span className="text-sm font-medium text-foreground">Quantity</span>
+        <div className="mt-6 flex items-center justify-between rounded-card border border-border bg-card p-3.5 shadow-card">
+          <div>
+            <span className="block text-sm font-semibold text-foreground">Quantity</span>
+            <span className="mt-0.5 block text-xs text-muted-foreground">Choose your amount</span>
+          </div>
           <Stepper value={qty} onChange={setQty} />
         </div>
 
@@ -111,12 +117,12 @@ export function Product() {
             all platforms. The button stays a static "Add to cart". */}
         <div
           data-testid="product-total"
-          className="mt-4 flex items-center justify-between border-t border-border pt-4"
+          className="mt-4 flex items-center justify-between px-1 pt-1"
         >
           <span className="text-sm font-medium text-foreground">Total</span>
           <Price priceTon={total} className="text-base font-semibold" />
         </div>
-      </div>
+      </section>
 
       <PrimaryButton text="Add to cart" onClick={handleAdd} />
     </main>

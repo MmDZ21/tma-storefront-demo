@@ -818,3 +818,41 @@ payment/amount logic was touched**.
   polish, but it is not a publish blocker.
 - On-device launch checks are complete for the supported Telegram clients; remaining
   pre-push work is repo/CI hygiene, not application behavior.
+
+---
+
+## Sales-facing visual polish (2026-07-11)
+
+### Scope and assumptions
+
+- **Targeted polish, not a redesign.** The existing route architecture, Telegram-native
+  controls, semantic theme tokens, and checkout behavior remain unchanged. The sales goal
+  benefits more from removing prototype signals than from changing proven interaction
+  patterns or expanding the feature set.
+- **No new commerce claims.** Testnet, simulated checkout, static catalog data, and the
+  client-only trust boundary remain explicit. Admin, persistence, mainnet, and production
+  payment authority stay out of scope per SPEC §4 and the client offer.
+- **Consumer UI stays brand-facing.** White-label capability is demonstrated by the two
+  config skins and sales media, not by adding an end-user skin switcher to the storefront.
+
+### Visual changes
+
+- Replaced the coffee emoji as the primary live mark with a bundled, hand-authored SVG;
+  the emoji remains a resilient config fallback. Replaced the cart/back emoji-glyph UI
+  with consistent current-color SVG icons.
+- Upgraded the generated coffee and sneaker art from flat placeholders to richer local SVG
+  pack shots with gradients, lighting, shadows, and product details. Assets remain tiny,
+  license-free, deterministic, and regenerable with `npm run gen:images`.
+- Added a compact branded catalog hero, clearer card hierarchy, premium product-detail
+  framing, and a structured cart summary. All colors still flow through the existing
+  semantic Telegram/brand tokens; no component-level hex colors were introduced.
+- Preserved the required no-wallet path but reduced its visual dominance: a compact
+  secondary demo action now sits below the order total while the TON MainButton remains
+  the single primary CTA.
+
+### Visual QA assumption
+
+- Browser QA uses the existing Telegram dark-theme development mock at 390×844. The
+  storefront header and all route screens were inspected there; the BotFather Mini App
+  title is Telegram-side configuration and must be renamed separately if its visible name
+  still contains “Demo.”

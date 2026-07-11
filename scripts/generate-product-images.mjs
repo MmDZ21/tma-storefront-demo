@@ -39,40 +39,64 @@ const sneakerPalettes = [
   { bg: '#eef0f2', item: '#334155', itemDark: '#1f2937', accent: '#ff4d2e' },
 ];
 
-const stage = (bg) => `
-  <rect width="320" height="320" fill="${bg}"/>
-  <ellipse cx="160" cy="116" rx="150" ry="96" fill="#ffffff" opacity="0.10"/>`;
+const stage = ({ bg, item, accent }) => `
+  <defs>
+    <linearGradient id="stage" x1="24" y1="18" x2="296" y2="302" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff" stop-opacity="0.48"/>
+      <stop offset="0.5" stop-color="${bg}"/>
+      <stop offset="1" stop-color="${item}" stop-opacity="0.14"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(86 58) rotate(48) scale(196)">
+      <stop stop-color="${accent}" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="${accent}" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#1c120c" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <rect width="320" height="320" fill="url(#stage)"/>
+  <rect width="320" height="320" fill="url(#glow)"/>
+  <circle cx="276" cy="46" r="54" fill="#ffffff" opacity="0.16"/>`;
 
 /** A bag of coffee with a cream label and a single bean. */
 function coffeeBag({ bg, item, itemDark, accent }) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Coffee">${stage(bg)}
-  <ellipse cx="160" cy="272" rx="78" ry="12" fill="#000000" opacity="0.08"/>
-  <rect x="108" y="78" width="104" height="26" rx="9" fill="${itemDark}"/>
-  <rect x="140" y="69" width="40" height="9" rx="4.5" fill="${itemDark}"/>
-  <rect x="100" y="100" width="120" height="162" rx="16" fill="${item}"/>
-  <rect x="186" y="100" width="34" height="162" rx="16" fill="#000000" opacity="0.10"/>
-  <rect x="116" y="150" width="88" height="80" rx="12" fill="#fbf7f0"/>
-  <ellipse cx="160" cy="180" rx="15" ry="19" fill="${accent}"/>
-  <path d="M160 163 C168 180 152 182 160 197" stroke="#fbf7f0" stroke-width="3" fill="none" stroke-linecap="round"/>
-  <rect x="134" y="210" width="52" height="6" rx="3" fill="${accent}" opacity="0.55"/>
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Coffee">${stage({ bg, item, accent })}
+  <ellipse cx="160" cy="276" rx="78" ry="12" fill="#1c120c" opacity="0.12"/>
+  <g filter="url(#shadow)">
+    <path d="M102 94h116l-8 170c-.5 10-8.8 18-18.8 18h-62.4c-10 0-18.3-8-18.8-18L102 94Z" fill="${item}"/>
+    <path d="M102 94h116l-2 36H104l-2-36Z" fill="${itemDark}"/>
+    <path d="M118 111h84" stroke="#ffffff" stroke-opacity="0.26" stroke-width="2"/>
+    <path d="M194 130h22l-6 134c-.5 10-8.8 18-18.8 18H180c11-4 14-12 14-25V130Z" fill="#000000" opacity="0.08"/>
+    <rect x="119" y="151" width="82" height="87" rx="14" fill="#fffaf2"/>
+    <text x="160" y="169" text-anchor="middle" fill="${itemDark}" font-size="8" font-family="Arial, sans-serif" font-weight="700" letter-spacing="1.6">ROAST</text>
+    <ellipse cx="160" cy="191" rx="15" ry="19" fill="${accent}"/>
+    <path d="M160 174c8 17-8 19 0 34" stroke="#fffaf2" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M137 220h46" stroke="${itemDark}" stroke-opacity="0.34" stroke-width="3" stroke-linecap="round"/>
+    <path d="M145 227h30" stroke="${itemDark}" stroke-opacity="0.2" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <g fill="${itemDark}" opacity="0.7">
+    <ellipse cx="74" cy="252" rx="8" ry="11" transform="rotate(-34 74 252)"/>
+    <ellipse cx="245" cy="246" rx="7" ry="10" transform="rotate(28 245 246)"/>
+  </g>
 </svg>
 `;
 }
 
 /** A flat-style low-top sneaker. */
 function sneaker({ bg, item, itemDark, accent }) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Sneaker">${stage(bg)}
-  <ellipse cx="162" cy="246" rx="118" ry="13" fill="#000000" opacity="0.08"/>
-  <rect x="48" y="212" width="224" height="32" rx="16" fill="#ffffff"/>
-  <rect x="48" y="212" width="224" height="11" rx="5.5" fill="${accent}"/>
-  <rect x="70" y="150" width="190" height="70" rx="34" fill="${item}"/>
-  <rect x="198" y="158" width="62" height="62" rx="31" fill="${itemDark}"/>
-  <rect x="70" y="158" width="54" height="62" rx="26" fill="${itemDark}"/>
-  <rect x="92" y="138" width="48" height="30" rx="14" fill="${itemDark}"/>
-  <path d="M122 200 L196 172 L206 184 L132 212 Z" fill="#ffffff" opacity="0.92"/>
-  <g stroke="#ffffff" stroke-width="5" stroke-linecap="round">
-    <line x1="150" y1="166" x2="172" y2="158"/>
-    <line x1="156" y1="182" x2="178" y2="174"/>
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Sneaker">${stage({ bg, item, accent })}
+  <ellipse cx="162" cy="253" rx="118" ry="13" fill="#111827" opacity="0.12"/>
+  <g filter="url(#shadow)" transform="rotate(-5 160 190)">
+    <path d="M53 207c34-7 57-31 78-79l45 20c18 8 30 26 51 33l43 15c8 3 14 11 14 20v9H50v-10c0-4 1-6 3-8Z" fill="${item}"/>
+    <path d="M131 128l45 20c13 6 23 17 35 25l-25 25-67-30 12-40Z" fill="${itemDark}"/>
+    <path d="m126 169 61 27-13 17-65-28 17-16Z" fill="#ffffff" opacity="0.9"/>
+    <g stroke="#ffffff" stroke-width="5" stroke-linecap="round">
+      <path d="m146 150 27 12"/>
+      <path d="m139 161 28 12"/>
+      <path d="m133 172 27 12"/>
+    </g>
+    <path d="M49 216h236v17c0 8-7 15-15 15H65c-9 0-16-7-16-16v-16Z" fill="#fff"/>
+    <path d="M63 233h198" stroke="${accent}" stroke-opacity="0.42" stroke-width="4" stroke-linecap="round" stroke-dasharray="7 8"/>
   </g>
 </svg>
 `;

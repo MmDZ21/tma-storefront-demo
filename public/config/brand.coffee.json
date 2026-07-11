@@ -1,6 +1,7 @@
 {
   "name": "Roast & Ritual",
   "welcomeLine": "Small-batch coffee, delivered on-chain.",
+  "logoUrl": "/brand/roast-and-ritual.svg",
   "logoEmoji": "☕",
   "accentColor": "#9a5b34",
   "currency": { "label": "TON", "usdRate": 5.2 },

@@ -1,16 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Sneaker">
-  <rect width="320" height="320" fill="#eef0f2"/>
-  <ellipse cx="160" cy="116" rx="150" ry="96" fill="#ffffff" opacity="0.10"/>
-  <ellipse cx="162" cy="246" rx="118" ry="13" fill="#000000" opacity="0.08"/>
-  <rect x="48" y="212" width="224" height="32" rx="16" fill="#ffffff"/>
-  <rect x="48" y="212" width="224" height="11" rx="5.5" fill="#ff4d2e"/>
-  <rect x="70" y="150" width="190" height="70" rx="34" fill="#334155"/>
-  <rect x="198" y="158" width="62" height="62" rx="31" fill="#1f2937"/>
-  <rect x="70" y="158" width="54" height="62" rx="26" fill="#1f2937"/>
-  <rect x="92" y="138" width="48" height="30" rx="14" fill="#1f2937"/>
-  <path d="M122 200 L196 172 L206 184 L132 212 Z" fill="#ffffff" opacity="0.92"/>
-  <g stroke="#ffffff" stroke-width="5" stroke-linecap="round">
-    <line x1="150" y1="166" x2="172" y2="158"/>
-    <line x1="156" y1="182" x2="178" y2="174"/>
+  <defs>
+    <linearGradient id="stage" x1="24" y1="18" x2="296" y2="302" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff" stop-opacity="0.48"/>
+      <stop offset="0.5" stop-color="#eef0f2"/>
+      <stop offset="1" stop-color="#334155" stop-opacity="0.14"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(86 58) rotate(48) scale(196)">
+      <stop stop-color="#ff4d2e" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#ff4d2e" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#1c120c" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <rect width="320" height="320" fill="url(#stage)"/>
+  <rect width="320" height="320" fill="url(#glow)"/>
+  <circle cx="276" cy="46" r="54" fill="#ffffff" opacity="0.16"/>
+  <ellipse cx="162" cy="253" rx="118" ry="13" fill="#111827" opacity="0.12"/>
+  <g filter="url(#shadow)" transform="rotate(-5 160 190)">
+    <path d="M53 207c34-7 57-31 78-79l45 20c18 8 30 26 51 33l43 15c8 3 14 11 14 20v9H50v-10c0-4 1-6 3-8Z" fill="#334155"/>
+    <path d="M131 128l45 20c13 6 23 17 35 25l-25 25-67-30 12-40Z" fill="#1f2937"/>
+    <path d="m126 169 61 27-13 17-65-28 17-16Z" fill="#ffffff" opacity="0.9"/>
+    <g stroke="#ffffff" stroke-width="5" stroke-linecap="round">
+      <path d="m146 150 27 12"/>
+      <path d="m139 161 28 12"/>
+      <path d="m133 172 27 12"/>
+    </g>
+    <path d="M49 216h236v17c0 8-7 15-15 15H65c-9 0-16-7-16-16v-16Z" fill="#fff"/>
+    <path d="M63 233h198" stroke="#ff4d2e" stroke-opacity="0.42" stroke-width="4" stroke-linecap="round" stroke-dasharray="7 8"/>
   </g>
 </svg>

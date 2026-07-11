@@ -35,13 +35,13 @@ describe('<Cart />', () => {
     vi.unstubAllGlobals();
   });
 
-  it('shows the subtotal amount in the DOM with a static pay CTA (amount off the native button)', async () => {
+  it('shows the order total in the DOM with a static pay CTA (amount off the native button)', async () => {
     renderWithProviders(<App />, { route: '/cart' });
     expect(await screen.findByText('Ethiopia')).toBeInTheDocument();
     expect(screen.getByText('Brazil')).toBeInTheDocument();
-    // 1.5*2 + 1.3 = 4.3 — the amount lives in the DOM Subtotal line, NOT on the native
+    // 1.5*2 + 1.3 = 4.3 — the amount lives in the DOM order-total card, NOT on the native
     // MainButton (mobile Telegram lags its setParams text; BUG 2).
-    expect(screen.getByText('Subtotal')).toBeInTheDocument();
+    expect(screen.getByText('Order total')).toBeInTheDocument();
     expect(screen.getByText(/4\.3 TON/)).toBeInTheDocument();
     const cta = screen.getByRole('button', { name: 'Pay with TON' });
     expect(cta).not.toHaveTextContent(/4\.3/);
@@ -59,7 +59,7 @@ describe('<Cart />', () => {
     renderWithProviders(<App />, { route: '/cart' });
     await screen.findByText('Ethiopia');
 
-    await userEvent.click(screen.getByRole('button', { name: /demo mode: simulate payment/i }));
+    await userEvent.click(screen.getByRole('button', { name: /simulate/i }));
 
     await waitFor(() => expect(Object.keys(useCartStore.getState().lines)).toHaveLength(0));
     const orders = Object.values(useOrderStore.getState().orders);

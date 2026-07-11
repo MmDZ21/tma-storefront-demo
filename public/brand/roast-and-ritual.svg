@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Roast and Ritual">
+  <defs>
+    <linearGradient id="bg" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#b7774f" />
+      <stop offset="1" stop-color="#724028" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="url(#bg)" />
+  <path d="M20 21h20v15a10 10 0 0 1-10 10 10 10 0 0 1-10-10V21Z" fill="#fff8ef" />
+  <path d="M40 26h3.5a6.5 6.5 0 0 1 0 13H40" fill="none" stroke="#fff8ef" stroke-width="4" stroke-linecap="round" />
+  <path d="M26 14c-2 3 2 4 0 7M33 14c-2 3 2 4 0 7" fill="none" stroke="#fff8ef" stroke-width="2.5" stroke-linecap="round" opacity=".82" />
+  <path d="M26 30c3-3 8-1 8 3 0 4-5 7-8 5-3-2-3-6 0-8Z" fill="#9a5b34" />
+  <path d="M30 29.5c1.5 3-1.5 5.5 0 8" fill="none" stroke="#fff8ef" stroke-width="1.5" stroke-linecap="round" />
+</svg>

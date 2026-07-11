@@ -24,10 +24,10 @@ export function CategoryChips({ categories, active, onSelect }: CategoryChipsPro
               onSelect(category);
             }}
             className={[
-              'shrink-0 rounded-pill border px-3.5 py-1.5 text-sm font-medium transition-colors duration-150',
+              'shrink-0 rounded-pill border px-3.5 py-2 text-xs font-semibold transition-all duration-150',
               selected
-                ? 'border-transparent bg-primary text-primary-foreground'
-                : 'border-border bg-card text-muted-foreground',
+                ? 'border-transparent bg-primary text-primary-foreground shadow-card'
+                : 'border-border bg-card/80 text-foreground active:bg-muted',
             ].join(' ')}
           >
             {category}

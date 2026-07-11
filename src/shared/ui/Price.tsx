@@ -9,7 +9,7 @@ export function Price({ priceTon, className }: { priceTon: number; className?: s
   const { currency } = useBrand();
   return (
     <span className={className}>
-      <span className="font-semibold text-foreground">
+      <span className="whitespace-nowrap font-semibold text-foreground">
         {formatTokenAmount(priceTon)} {currency.label}
       </span>
       {currency.usdRate !== undefined && (

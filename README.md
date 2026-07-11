@@ -125,7 +125,7 @@ one file to re-skin the whole app. Two example skins ship in
 
 | Skin | Logo | Accent |
 | --- | --- | --- |
-| `brand.coffee.json` | emoji (`☕`) | warm espresso `#9a5b34` |
+| `brand.coffee.json` | bundled SVG mark | warm espresso `#9a5b34` |
 | `brand.sneakers.json` | bundled SVG image | vivid `#ff4d2e` |
 
 ```bash
@@ -133,7 +133,7 @@ one file to re-skin the whole app. Two example skins ship in
 cp public/config/brand.sneakers.json public/config/brand.json
 ```
 
-Product imagery ships as license-free flat-SVG illustrations (`npm run gen:images`) — and
+Product imagery ships as license-free, locally generated SVG pack shots (`npm run gen:images`) — and
 swapping in **real photos is zero-code**: drop files into `/public` and point the product
 `image` paths at them. Full checklist: **[`docs/PERSONALIZE.md`](./docs/PERSONALIZE.md)**.
 
