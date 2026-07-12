@@ -5,6 +5,7 @@ import './index.css';
 import { initTelegram, ThemeProvider } from '@/features/theming';
 import { TelegramProvider } from '@/features/telegram';
 import { App } from '@/app/App';
+import { shouldShowOutsideTelegramFallback } from '@/app/publicRoute';
 import { resolveInitialHash } from '@/app/startParam';
 
 // Lazy so the QR dependency lands in its own chunk, fetched only outside Telegram.
@@ -33,7 +34,11 @@ async function bootstrap(): Promise<void> {
   // Outside Telegram → the §3.9 fallback. In dev, `?fallback` previews it.
   const previewFallback =
     import.meta.env.DEV && new URLSearchParams(window.location.search).has('fallback');
-  const showFallback = !telegramEnv.inTelegram || previewFallback;
+  const showFallback = shouldShowOutsideTelegramFallback({
+    inTelegram: telegramEnv.inTelegram,
+    hash: window.location.hash,
+    previewFallback,
+  });
 
   // Telegram delivers launch data in the URL hash (#tgWebAppData=…&tgWebAppStartParam=…),
   // which HashRouter would otherwise read as a route. Before mounting the router, replace

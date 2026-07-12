@@ -17,6 +17,10 @@ the judgment calls the spec left open.
 - The sales CTA uses `APP.contactUrl` and points to the MmD Telegram profile so a
   prospect initiates the chat. This is compatible with the account's current
   messaging restriction; no unsolicited Telegram outreach is automated here.
+- The public `/build-yours` route is allowed to render outside Telegram; all
+  other storefront routes keep the existing QR fallback. This keeps the sales
+  link usable from email and community posts without weakening the Mini App
+  entry experience.
 - The page discloses that the studio is Iran-based and that direct TON/USDT
   settlement is discussed before any contract or payment.
 
