@@ -6,6 +6,22 @@ the judgment calls the spec left open.
 
 ---
 
+## Sales conversion page (2026-07-12)
+
+- The public `/build-yours` route is a separate conversion page so the existing
+  storefront remains a client-facing demo and its checkout behavior stays unchanged.
+- The entry offer is a **$149, 48-hour branded storefront preview**, with 50% to
+  start credited to the **$450, five-business-day pilot**. Scope is intentionally
+  limited to branding, up to 6 products, a live Telegram link, a TON testnet
+  checkout demo, and one revision.
+- The sales CTA uses `APP.contactUrl` and points to the MmD Telegram profile so a
+  prospect initiates the chat. This is compatible with the account's current
+  messaging restriction; no unsolicited Telegram outreach is automated here.
+- The page discloses that the studio is Iran-based and that direct TON/USDT
+  settlement is discussed before any contract or payment.
+
+---
+
 ## Slice 1 — Scaffold + Theming (2026-06-12)
 
 ### Toolchain

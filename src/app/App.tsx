@@ -4,6 +4,7 @@ import { cartCount, useCartStore } from '@/entities/cart/cartStore';
 import { useClosingConfirmation, useTelegram } from '@/features/telegram';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { Catalog } from './catalog/Catalog';
+import { BuildYours } from './build-yours/BuildYours';
 import { Product } from './product/Product';
 import { Status } from './status/Status';
 
@@ -36,6 +37,7 @@ export function App() {
 
   return (
     <Routes>
+      <Route path="/build-yours" element={<BuildYours />} />
       <Route path="/" element={<Catalog />} />
       <Route path="/product/:id" element={<Product />} />
       <Route

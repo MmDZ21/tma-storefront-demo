@@ -7,4 +7,6 @@ export const APP = {
    * launch button and a `t.me/<bot>/<app>?startapp=…` deep link use (slice 8).
    */
   botUrl: import.meta.env.VITE_BOT_URL ?? 'https://t.me/your_storefront_bot',
+  /** Inbound sales contact. Buyers initiate the conversation from this profile. */
+  contactUrl: import.meta.env.VITE_CONTACT_URL ?? 'https://t.me/MmDTelegramApps',
 };
