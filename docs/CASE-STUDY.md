@@ -44,13 +44,17 @@ trusted source.
 
 ## Verification
 
-- 113 automated tests passing.
-- TypeScript strict build passing.
-- ESLint passing.
-- Production Vite build passing.
-- TON testnet payment round-trip verified on-device.
-- Telegram deep-link and launch flow verified on-device.
-- Cloudflare Pages deployment live.
+_Fresh T2.3 workbench check 2026-07-16 (`fc6085d` + prettier touch on two files):_
+
+- `npm run format:check` passing (after Prettier on `BuildYours.tsx` / `publicRoute.ts`).
+- `npm run typecheck` / `lint` / `test` (**120**/120) / `build` passing.
+- Live Pages `https://tma-storefront-demo.pages.dev` HTTP 200; outside-Telegram QR fallback verified (mobile 390×844).
+- Public sales route `#/build-yours` reachable in a normal browser after hash-bootstrap fix + Pages redeploy (2026-07-16).
+- TON Connect manifest HTTP 200 at `/tonconnect-manifest.json`.
+- Telegram entry `https://t.me/tma_demo_bot/store` HTTP 200.
+- TON payments remain **testnet-only**; client confirmation is not a production payment authority.
+
+Also historically: TON testnet payment round-trip and Telegram deep-link verified on-device (prior publish QA).
 
 ## Client outcome
 

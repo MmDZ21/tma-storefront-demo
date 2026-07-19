@@ -127,7 +127,10 @@ export function BuildYours() {
               <ul className="grid gap-3 py-6 sm:grid-cols-2" aria-label="Preview scope">
                 {previewBenefits.map((benefit) => (
                   <li key={benefit} className="flex gap-3 text-sm leading-6 text-foreground">
-                    <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden="true" />
+                    <span
+                      className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary"
+                      aria-hidden="true"
+                    />
                     {benefit}
                   </li>
                 ))}
@@ -155,8 +158,9 @@ export function BuildYours() {
                 If the preview fits, ship the pilot.
               </h2>
               <p className="mt-4 leading-7 text-subtitle">
-                The next step is a five-business-day pilot at <strong className="text-foreground">$450</strong>:
-                more products, tighter brand polish, and a customer-ready handoff plan.
+                The next step is a five-business-day pilot at{' '}
+                <strong className="text-foreground">$450</strong>: more products, tighter brand
+                polish, and a customer-ready handoff plan.
               </p>
             </div>
             <div className="rounded-card border border-border bg-muted/50 p-6 sm:p-8">
@@ -165,15 +169,17 @@ export function BuildYours() {
                 A small decision before a large one.
               </h2>
               <p className="mt-4 leading-7 text-subtitle">
-                No backend or mainnet claims are hidden here: this preview is designed to prove
-                the customer flow quickly.
+                No backend or mainnet claims are hidden here: this preview is designed to prove the
+                customer flow quickly.
               </p>
             </div>
           </section>
 
           <footer className="mt-16 flex flex-col gap-3 border-t border-border pt-6 text-xs leading-5 text-muted-foreground sm:mt-24 sm:flex-row sm:items-center sm:justify-between">
             <span>MmD / Telegram Apps</span>
-            <span>Iran-based studio · direct TON/USDT settlement discussed before contract or payment</span>
+            <span>
+              Iran-based studio · direct TON/USDT settlement discussed before contract or payment
+            </span>
           </footer>
         </div>
       </div>
